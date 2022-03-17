@@ -1,0 +1,5 @@
+(executable
+ (name main)
+ (public_name ltl2ba)
+ (libraries cmdliner)
+ (package ltl2ba))
