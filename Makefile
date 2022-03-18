@@ -11,6 +11,10 @@ dependencies:
 build:
 	dune build
 
+#> test         | Run unit tests
+test:
+	dune test
+
 #> doc          | Generates the HTML documentation via odoc
 doc:
 	dune build @doc

@@ -1,0 +1,4 @@
+(tests
+  (names test_ltl_parser)
+  (libraries alcotest parsing)
+  (package ltl2ba))
