@@ -1,7 +1,7 @@
 (executable
  (name main)
  (public_name ltl2ba)
- (libraries parsing ltl cmdliner base)
+ (libraries parsing ltl cmdliner)
  (package ltl2ba))
 
 (documentation

@@ -1,0 +1,41 @@
+name: Build and test ltl2ba
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  build-test-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up OCaml
+        uses: avsm/setup-ocaml@v2
+        with:
+          ocaml-compiler: 4.12.x
+          dune-cache: true
+
+      - name: Install OCaml dependencies
+        run: |
+          make dependencies
+
+      - name: Make build
+        run: |
+          OCAMLRUNPARAM=b opam exec -- make build
+
+      - name: Make test
+        run: |
+          OCAMLRUNPARAM=b opam exec -- make test
+
+      - name: Dune build doc
+        run: |
+          OCAMLRUNPARAM=b opam exec -- dune build @doc
+
+      - name: Upload odoc artifact
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: _build/default/_doc/_html
+          destination_dir: ./

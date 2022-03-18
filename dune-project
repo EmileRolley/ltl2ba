@@ -23,8 +23,8 @@
 
 (package
  (name ltl2ba)
- (synopsis "A compiler of LTL formula in Büchi automata.")
- (description "A compiler of LTL formula in Büchi automata.")
+ (synopsis "A compiler of LTL formula in Büchi automata")
+ (description "A compiler of LTL formula in Büchi automata")
  (depends
    (ocaml (>= 4.12.0))
    (dune (>= 3.0.3))

@@ -1,8 +1,26 @@
 {0 ltl2ba documentation}
 
-{1 The project}
+{1 The context}
 
-{2 List of modules}
+This program has been implemented during the course {i Introduction à la
+vérification} of the University of Bordeaux.
+
+The goal is to implement {!section-algo} used to translate a LTL formula into
+an equivalent Büchi automata -- on transitions.
+
+{1:algo The algorithm}
+
+Let φ be an LTL formula.
+
+{2 The first phase}
+
+The first phase consists in putting φ in {i negation normal form} (NNF).
+
+{2 The second phase}
+
+TODO
+
+{1 List of modules}
 
 {ul
 	{li {{: Ltl/index.html} The LTL formula representation}}

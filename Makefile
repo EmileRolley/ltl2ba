@@ -18,7 +18,7 @@ test:
 #> doc          | Generates the HTML documentation via odoc
 doc:
 	dune build @doc
-	ln -sf $(PWD)/_build/default/_doc/_html/index.html docs/odoc.html
+	ln -sf $(PWD)/_build/default/_doc/_html/index.html docs/index.html
 
 #> clean        | Cleans build artifacts
 clean:
