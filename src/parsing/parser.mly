@@ -14,4 +14,4 @@
 
 %%
 
-formula: EOF { Bool false }
+formula: FALSE EOF { Until (Bool false, Or (Bool false, Not (Bool true))) }
