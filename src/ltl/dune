@@ -1,0 +1,4 @@
+(library
+ (name ltl)
+ (public_name ltl2ba.ltl)
+ (modules (:standard)))

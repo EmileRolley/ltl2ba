@@ -1,5 +1,9 @@
 (executable
  (name main)
  (public_name ltl2ba)
- (libraries parsing cmdliner base)
+ (libraries parsing ltl cmdliner base)
  (package ltl2ba))
+
+(documentation
+ (package ltl2ba)
+ (mld_files index))

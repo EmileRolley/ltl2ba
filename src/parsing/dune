@@ -1,9 +1,10 @@
 (menhir
-  (modules parser))
+ (modules parser))
 
 (ocamllex
-  (modules lexer))
+ (modules lexer))
 
 (library
-  (name parsing)
-  (modules (:standard)))
+ (name parsing)
+ (modules (:standard))
+ (libraries ltl))

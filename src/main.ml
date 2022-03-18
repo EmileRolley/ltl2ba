@@ -1,10 +1,11 @@
 open Lexing
 open Parsing
+open Ltl
 
 let return_ok = 0
 let return_err = 1
 
-let parse (lexbuf : lexbuf) : Ast.formula option =
+let parse (lexbuf : lexbuf) : Formula.t option =
   try Some (Parser.formula Lexer.read lexbuf) with
   | Lexer.Syntax_error msg ->
     Printf.printf "[ERROR] %s\n" msg;
@@ -20,7 +21,7 @@ let driver (formula : string option) (_debug : bool) : int =
   |> Option.fold ~none:return_ok ~some:(fun formula ->
          match parse (Lexing.from_string formula) with
          | Some f ->
-           f |> Ast.formula_to_string |> print_endline;
+           f |> Formula.format Format.std_formatter;
            return_ok
          | None -> return_err)
 ;;

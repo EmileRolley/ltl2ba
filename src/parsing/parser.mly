@@ -1,5 +1,6 @@
 %{
-  open Ast
+  open Ltl
+  open Formula
 %}
 
 %token EOF
@@ -12,7 +13,7 @@
 %left UNTIL
 %left NOT NEXT
 
-%type <Ast.formula> formula
+%type <Ltl.Formula.t> formula
 
 %start formula
 

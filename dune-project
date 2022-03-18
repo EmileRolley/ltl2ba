@@ -29,6 +29,7 @@
    (ocaml (>= 4.12.0))
    (dune (>= 3.0.3))
    (menhir (>= 20200211))
-   (cmdliner (>= 1.1.0)))
+   (cmdliner (>= 1.1.0))
+   (alcotest (and :with-test (>= 1.5.0))))
  (tags
   (topics "to describe" your project)))
