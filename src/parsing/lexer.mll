@@ -29,9 +29,8 @@ rule read = parse
   | "|" { OR }
   | "&" { AND }
   | "(" { LPAREN }
-  | ")" { LPAREN }
-  | "true" { TRUE }
-  | "false" { FALSE }
+  | ")" { RPAREN }
+  | ("true" | "false") as b { BOOL (bool_of_string b) }
   | id as i { PROP(i) }
   | eof { EOF }
   | _ {
