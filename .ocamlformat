@@ -1,0 +1,8 @@
+version=0.21.0
+profile = janestreet
+margin = 90
+break-fun-decl = smart
+break-infix = fit-or-vertical
+break-fun-sig = smart
+wrap-comments
+parse-docstrings
