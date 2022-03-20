@@ -5,12 +5,12 @@
 
 %token EOF
 %token <bool> BOOL
-%token NEXT UNTIL NOT OR AND
+%token NEXT UNTIL NOT OR AND RELEASE
 %token LPAREN RPAREN
 %token <string> PROP
 
 %left OR AND
-%left UNTIL
+%left UNTIL RELEASE
 %left NOT NEXT
 
 %type <Ltl.Formula.t> formula
@@ -36,4 +36,5 @@ ltl:
   | OR { Or }
   | AND { And }
   | UNTIL { Until }
+  | RELEASE { Release }
 

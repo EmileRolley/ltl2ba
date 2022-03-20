@@ -19,7 +19,8 @@ https://ocaml.org/manual/lexyacc.html#s%3Aocamllex-overview} [ocamllex]} and
 
 ⧆ ::= '|'  boolean disjunction
     | '&'  boolean conjunction
-    | 'U'  Until operator
+    | 'U'  Until temporal operator
+    | 'R'  Release temporal operator
 
 ρ ::= [a-z][a-zA-Z0-9]*
 v}

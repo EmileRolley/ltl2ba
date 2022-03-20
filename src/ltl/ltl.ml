@@ -13,6 +13,7 @@ module Formula = struct
     | Or
     | And
     | Until
+    | Release
 
   let rec format fmt = function
     | Bool b -> Format.fprintf fmt "%s" (if b then "⊤" else "⊥")
@@ -29,5 +30,6 @@ module Formula = struct
     | Or -> "∨"
     | And -> "∧"
     | Until -> "U"
+    | Release -> "R"
   ;;
 end

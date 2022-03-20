@@ -45,16 +45,34 @@ let test_parse_p_or_q_and_false () =
   al_assert "should be equal" (expected_phi = Option.get phi_opt)
 ;;
 
+let test_parse_p_or_q_until_false () =
+  let phi_opt = To_test.parse "(p | q) U false" in
+  let expected_phi = Formula.(Bop (Bop (Prop "p", Or, Prop "q"), Until, Bool false)) in
+  al_assert "should parsed" (Option.is_some phi_opt);
+  al_assert "should be equal" (expected_phi = Option.get phi_opt)
+;;
+
+let test_parse_p_or_q_release_false () =
+  let phi_opt = To_test.parse "(p | q) R false" in
+  let expected_phi = Formula.(Bop (Bop (Prop "p", Or, Prop "q"), Release, Bool false)) in
+  al_assert "should parsed" (Option.is_some phi_opt);
+  al_assert "should be equal" (expected_phi = Option.get phi_opt)
+;;
+
 let () =
   Al.run
     "LTL parsing"
     Al.
-      [ ( "Basic propositional formulas"
+      [ ( "Propositional formulas"
         , [ test_case "φ := ⊥" `Quick test_parse_false
           ; test_case "φ := ⊤" `Quick test_parse_true
           ; test_case "φ := p" `Quick test_parse_p
           ; test_case "φ := p ∨ q" `Quick test_parse_p_or_q
           ; test_case "φ := (p ∨ q) ∧ ⊥" `Quick test_parse_p_or_q_and_false
+          ] )
+      ; ( "LTL formulas"
+        , [ test_case "φ := (p ∨ q) U ⊥" `Quick test_parse_p_or_q_until_false
+          ; test_case "φ := (p ∨ q) R ⊥" `Quick test_parse_p_or_q_release_false
           ] )
       ]
 ;;

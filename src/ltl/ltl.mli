@@ -15,6 +15,7 @@ module Formula : sig
     | Or
     | And
     | Until
+    | Release
 
   val format : Format.formatter -> t -> unit
 end

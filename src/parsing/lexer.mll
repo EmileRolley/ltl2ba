@@ -26,6 +26,7 @@ rule read = parse
   | "NOT" | "not" | "!" { NOT }
   | "X" { NEXT }
   | "U" { UNTIL }
+  | "R" { RELEASE }
   | "|" { OR }
   | "&" { AND }
   | "(" { LPAREN }
