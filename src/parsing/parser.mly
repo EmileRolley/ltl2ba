@@ -1,6 +1,5 @@
 %{
   open Ltl
-  open Formula
 %}
 
 %token EOF
@@ -13,7 +12,7 @@
 %left UNTIL RELEASE
 %left NOT NEXT
 
-%type <Ltl.Formula.t> formula
+%type <Ltl.formula> formula
 
 %start formula
 

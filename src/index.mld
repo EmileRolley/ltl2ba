@@ -21,7 +21,7 @@ The first phase consists in putting φ in {i negation normal form} (NNF), where:
 - only the temporal operator [X], [U], and [R] can appear.
 
 To calculate {i nnf(φ)}, following rules can be applied recursively -- see
-{!val: Ltl.Formula.nnf}:
+{!val: Ltl.nnf}:
 
 - nnf(ρ) = ρ
 - nnf(¬¬φ) = nnf(φ)

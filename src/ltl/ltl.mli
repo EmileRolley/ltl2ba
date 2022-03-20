@@ -1,48 +1,48 @@
 (** This libary contains the implementation of LTL formulas. *)
 
-module Formula : sig
-  (** LTL formula definition. *)
-  type t =
-    | Bool of bool
-    | Prop of string
-    | Uop of uop * t
-    | Bop of t * bop * t
+(** LTL formula definition. *)
+type formula =
+  | Bool of bool
+  | Prop of string
+  | Uop of uop * formula
+  | Bop of formula * bop * formula
 
-  and uop =
-    | Not
-    | Next
+(** Unary operator *)
+and uop =
+  | Not
+  | Next
 
-  and bop =
-    | Or
-    | And
-    | Until
-    | Release
+(** Binary operator *)
+and bop =
+  | Or
+  | And
+  | Until
+  | Release
 
-  (** {2 Helping constructor functions} *)
+(** {2 Helping constructor functions} *)
 
-  (** [neg phi] returns [Uop (Not, phi)] *)
-  val neg : t -> t
+(** [neg phi] returns [Uop (Not, phi)] *)
+val neg : formula -> formula
 
-  (** [next phi] returns [Uop (Next, phi)] *)
-  val next : t -> t
+(** [next phi] returns [Uop (Next, phi)] *)
+val next : formula -> formula
 
-  (** [phi <|> psi] returns [Bop (phi, Or, psi)] *)
-  val ( <|> ) : t -> t -> t
+(** [phi <|> psi] returns [Bop (phi, Or, psi)] *)
+val ( <|> ) : formula -> formula -> formula
 
-  (** [phi <&> psi] returns [Bop (phi, And, psi)] *)
-  val ( <&> ) : t -> t -> t
+(** [phi <&> psi] returns [Bop (phi, And, psi)] *)
+val ( <&> ) : formula -> formula -> formula
 
-  (** [phi <~> psi] returns [Bop (phi, Until, psi)] *)
-  val ( <~> ) : t -> t -> t
+(** [phi <~> psi] returns [Bop (phi, Until, psi)] *)
+val ( <~> ) : formula -> formula -> formula
 
-  (** [phi <^> psi] returns [Bop (phi, Release, psi)] *)
-  val ( <^> ) : t -> t -> t
+(** [phi <^> psi] returns [Bop (phi, Release, psi)] *)
+val ( <^> ) : formula -> formula -> formula
 
-  (** {2 Main logic functions} *)
+(** {2 Main logic functions} *)
 
-  (** [format fmt phi] uses [fmt] to format [phi] into its string representation. *)
-  val format : Format.formatter -> t -> unit
+(** [format fmt phi] uses [fmt] to format [phi] into its string representation. *)
+val format : Format.formatter -> formula -> unit
 
-  (** [nnf phi] returns the negation normal form of [phi]. *)
-  val nnf : t -> t
-end
+(** [nnf phi] returns the negation normal form of [phi]. *)
+val nnf : formula -> formula

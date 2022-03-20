@@ -3,7 +3,7 @@ open Ltl
 module Al = Alcotest
 
 module To_test = struct
-  let parse (formula : string) : Formula.t option =
+  let parse (formula : string) : formula option =
     let lexbuf = Lexing.from_string formula in
     try Some (Parser.formula Lexer.read lexbuf) with
     | Lexer.Syntax_error _msg -> None
@@ -16,45 +16,45 @@ let al_assert msg = Al.(check bool) msg true
 let test_parse_false () =
   let phi_opt = To_test.parse "false" in
   al_assert "should parsed" (Option.is_some phi_opt);
-  al_assert "should be equal" (Formula.Bool false = Option.get phi_opt)
+  al_assert "should be equal" (Ltl.Bool false = Option.get phi_opt)
 ;;
 
 let test_parse_true () =
   let phi_opt = To_test.parse "true" in
   al_assert "should parsed" (Option.is_some phi_opt);
-  al_assert "should be equal" (Formula.Bool true = Option.get phi_opt)
+  al_assert "should be equal" (Ltl.Bool true = Option.get phi_opt)
 ;;
 
 let test_parse_p () =
   let phi_opt = To_test.parse "p" in
   al_assert "should parsed" (Option.is_some phi_opt);
-  al_assert "should be equal" (Formula.Prop "p" = Option.get phi_opt)
+  al_assert "should be equal" (Ltl.Prop "p" = Option.get phi_opt)
 ;;
 
 let test_parse_p_or_q () =
   let phi_opt = To_test.parse "p | q" in
-  let expected_phi = Formula.(Prop "p" <|> Prop "q") in
+  let expected_phi = Ltl.(Prop "p" <|> Prop "q") in
   al_assert "should parsed" (Option.is_some phi_opt);
   al_assert "should be equal" (expected_phi = Option.get phi_opt)
 ;;
 
 let test_parse_p_or_q_and_false () =
   let phi_opt = To_test.parse "(p | q) & false" in
-  let expected_phi = Formula.(Prop "p" <|> Prop "q" <&> Bool false) in
+  let expected_phi = Ltl.(Prop "p" <|> Prop "q" <&> Bool false) in
   al_assert "should parsed" (Option.is_some phi_opt);
   al_assert "should be equal" (expected_phi = Option.get phi_opt)
 ;;
 
 let test_parse_p_or_q_until_false () =
   let phi_opt = To_test.parse "(p | q) U false" in
-  let expected_phi = Formula.(Prop "p" <|> Prop "q" <~> Bool false) in
+  let expected_phi = Ltl.(Prop "p" <|> Prop "q" <~> Bool false) in
   al_assert "should parsed" (Option.is_some phi_opt);
   al_assert "should be equal" (expected_phi = Option.get phi_opt)
 ;;
 
 let test_parse_p_or_q_release_false () =
   let phi_opt = To_test.parse "(p | q) R false" in
-  let expected_phi = Formula.(Prop "p" <|> Prop "q" <^> Bool false) in
+  let expected_phi = Ltl.(Prop "p" <|> Prop "q" <^> Bool false) in
   al_assert "should parsed" (Option.is_some phi_opt);
   al_assert "should be equal" (expected_phi = Option.get phi_opt)
 ;;
