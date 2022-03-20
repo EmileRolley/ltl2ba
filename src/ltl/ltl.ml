@@ -15,6 +15,13 @@ module Formula = struct
     | Until
     | Release
 
+  let not phi = Uop (Not, phi)
+  let next phi = Uop (Next, phi)
+  let ( <|> ) phi psi = Bop (phi, Or, psi)
+  let ( <&> ) phi psi = Bop (phi, And, psi)
+  let ( <~> ) phi psi = Bop (phi, Until, psi)
+  let ( <^> ) phi psi = Bop (phi, Release, psi)
+
   let rec format fmt = function
     | Bool b -> Format.fprintf fmt "%s" (if b then "⊤" else "⊥")
     | Prop p -> Format.fprintf fmt "%s" p
