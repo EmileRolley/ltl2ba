@@ -14,7 +14,8 @@ Let φ be an LTL formula.
 
 {2 The first phase}
 
-The first phase consists in putting φ in {i negation normal form} (NNF).
+The first phase consists in putting φ in {i negation normal form} (NNF), where
+negations are
 
 {2 The second phase}
 
@@ -23,5 +24,6 @@ TODO
 {1 List of modules}
 
 {ul
-	{li {{: Ltl/index.html} The LTL formula representation}}
+	{li {{: parser.html} [Parser]} - The LTL parser}
+	{li {{: Ltl/index.html} [Ltl]} - The LTL formula representation}
 }

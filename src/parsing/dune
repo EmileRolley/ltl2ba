@@ -8,3 +8,7 @@
  (name parsing)
  (modules (:standard))
  (libraries ltl))
+
+(documentation
+ (package ltl2ba)
+ (mld_files parser))

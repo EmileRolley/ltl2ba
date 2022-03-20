@@ -1,0 +1,25 @@
+{0 The parser}
+
+The parser is built from {{:
+https://ocaml.org/manual/lexyacc.html#s%3Aocamllex-overview} [ocamllex]} and
+{{: http://gallium.inria.fr/~fpottier/menhir/} [menhir]}.
+
+{1 The grammar}
+
+{v
+φ ::= 'false'    boolean false
+    | 'true'     boolean true
+    | ρ          atomic proposition
+    | ⌾ φ        unary operator
+    | φ ⧆ φ      binary operator
+    | '(' φ ')'  parenthesized formula
+
+⌾ ::= '!'  boolean negation
+    | 'X'  Next operator
+
+⧆ ::= '|'  boolean disjunction
+    | '&'  boolean conjunction
+    | 'U'  Until operator
+
+ρ ::= [a-z][a-zA-Z0-9]*
+v}
