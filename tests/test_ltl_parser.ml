@@ -38,6 +38,15 @@ let test_parse_p_or_q () =
   al_assert "should be equal" (expected_phi = Option.get phi_opt)
 ;;
 
+let test_parse_priority () =
+  let phi_opt = To_test.parse "p | p U !q & q" in
+  Ltl.format Format.std_formatter (Option.get phi_opt);
+  let expected_phi = Ltl.(Prop "p" <|> (Prop "p" <~> neg (Prop "q") <&> Prop "q")) in
+  Ltl.format Format.std_formatter expected_phi;
+  al_assert "should parsed" (Option.is_some phi_opt);
+  al_assert "should be equal" (expected_phi = Option.get phi_opt)
+;;
+
 let test_parse_p_or_q_and_false () =
   let phi_opt = To_test.parse "(p | q) & false" in
   let expected_phi = Ltl.(Prop "p" <|> Prop "q" <&> Bool false) in
@@ -69,6 +78,7 @@ let () =
           ; test_case "φ := p" `Quick test_parse_p
           ; test_case "φ := p ∨ q" `Quick test_parse_p_or_q
           ; test_case "φ := (p ∨ q) ∧ ⊥" `Quick test_parse_p_or_q_and_false
+          ; test_case "φ := p ∨ p U ¬q ∧ q" `Quick test_parse_priority
           ] )
       ; ( "LTL formulas"
         , [ test_case "φ := (p ∨ q) U ⊥" `Quick test_parse_p_or_q_until_false

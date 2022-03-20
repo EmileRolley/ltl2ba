@@ -8,7 +8,8 @@
 %token LPAREN RPAREN
 %token <string> PROP
 
-%left OR AND
+%left OR
+%left AND
 %left UNTIL RELEASE
 %left NOT NEXT
 
