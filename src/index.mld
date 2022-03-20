@@ -14,16 +14,28 @@ Let φ be an LTL formula.
 
 {2 The first phase}
 
-The first phase consists in putting φ in {i negation normal form} (NNF), where
-negations are
+The first phase consists in putting φ in {i negation normal form} (NNF), where:
+
+- all negation appear only in front of the atomic propositions,
+- only other logical operators [∧], and [∨] can appear, and
+- only the temporal operator [X], [U], and [R] can appear.
+
+To calculate {i nnf(φ)}, following rules can be applied recursively:
+
+- nnf(ρ) = ρ
+- nnf(¬¬φ) = nnf(φ)
+- nnf(¬(φ ∨ ψ)) = ¬nnf(φ) ∧ ¬nnf(ψ)
+- nnf(¬(φ ∧ ψ)) = ¬nnf(φ) ∨ ¬nnf(ψ)
+- nnf(¬Xφ) = X¬nnf(φ)
+- nnf(¬(φ U ψ)) = ¬nnf(φ) R ¬nnf(ψ)
+- nnf(¬(φ R ψ)) = ¬nnf(φ) U ¬nnf(ψ)
+
 
 {2 The second phase}
 
-TODO
+For the second phase, let reassign φ as {i nnf(φ)}.
 
 {1 List of modules}
 
-{ul
-	{li {{: parser.html} [Parser]} - The LTL parser}
-	{li {{: Ltl/index.html} [Ltl]} - The LTL formula representation}
-}
+- {{: parser.html} [Parser]} - The LTL parser
+- {{: Ltl/index.html} [Ltl]} - The LTL formula representation
