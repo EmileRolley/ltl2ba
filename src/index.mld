@@ -20,16 +20,16 @@ The first phase consists in putting φ in {i negation normal form} (NNF), where:
 - only other logical operators [∧], and [∨] can appear, and
 - only the temporal operator [X], [U], and [R] can appear.
 
-To calculate {i nnf(φ)}, following rules can be applied recursively:
+To calculate {i nnf(φ)}, following rules can be applied recursively -- see
+{!val: Ltl.Formula.nnf}:
 
 - nnf(ρ) = ρ
 - nnf(¬¬φ) = nnf(φ)
-- nnf(¬(φ ∨ ψ)) = ¬nnf(φ) ∧ ¬nnf(ψ)
-- nnf(¬(φ ∧ ψ)) = ¬nnf(φ) ∨ ¬nnf(ψ)
-- nnf(¬Xφ) = X¬nnf(φ)
-- nnf(¬(φ U ψ)) = ¬nnf(φ) R ¬nnf(ψ)
-- nnf(¬(φ R ψ)) = ¬nnf(φ) U ¬nnf(ψ)
-
+- nnf(¬(φ ∨ ψ)) = nnf(¬φ) ∧ nnf(¬ψ)
+- nnf(¬(φ ∧ ψ)) = nnf(¬φ) ∨ nnf(¬ψ)
+- nnf(¬Xφ) = X nnf(¬φ)
+- nnf(¬(φ U ψ)) = nnf(¬φ) R nnf(¬ψ)
+- nnf(¬(φ R ψ)) = nnf(¬φ) U nnf(¬ψ)
 
 {2 The second phase}
 

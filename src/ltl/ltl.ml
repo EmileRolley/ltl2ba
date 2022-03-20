@@ -15,7 +15,7 @@ module Formula = struct
     | Until
     | Release
 
-  let not phi = Uop (Not, phi)
+  let neg phi = Uop (Not, phi)
   let next phi = Uop (Next, phi)
   let ( <|> ) phi psi = Bop (phi, Or, psi)
   let ( <&> ) phi psi = Bop (phi, And, psi)
@@ -38,5 +38,28 @@ module Formula = struct
     | And -> "∧"
     | Until -> "U"
     | Release -> "R"
+  ;;
+
+  let rec nnf = function
+    | (Bool _ | Prop _) as p -> p
+    | Uop (Next, phi) -> next (nnf phi)
+    | Bop (phi, o, psi) -> Bop (nnf phi, o, nnf psi)
+    | Uop (Not, phi) ->
+      (match phi with
+      | Bool b -> Bool (not b)
+      | Prop _ as p -> neg p (* leaf reached, nnf(¬p) = ¬p *)
+      | Uop (Next, phi) ->
+        (* nnf(¬Xφ) = X(nnf(¬φ)) *)
+        next (nnf (neg phi))
+      | Uop (Not, phi) ->
+        (* nnf(¬¬φ) = nnf(φ) *)
+        nnf phi
+      | Bop (phi, o, psi) -> get_dual o (nnf (neg phi)) (nnf (neg psi)))
+
+  and get_dual = function
+    | Or -> (* nnf(¬(φ ∨ ψ)) = nnf(¬φ) ∧ nnf(¬ψ) *) ( <&> )
+    | And -> (* nnf(¬(φ ∧ ψ)) = nnf(¬φ) ∨ nnf(¬ψ) *) ( <|> )
+    | Until -> (* nnf(¬(φ U ψ)) = nnf(¬φ) R nnf(¬ψ) *) ( <^> )
+    | Release -> (* nnf(¬(φ R ψ)) = nnf(¬φ) U nnf(¬ψ) *) ( <~> )
   ;;
 end

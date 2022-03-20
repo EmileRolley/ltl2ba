@@ -20,8 +20,8 @@ module Formula : sig
 
   (** {2 Helping constructor functions} *)
 
-  (** [not phi] returns [Uop (Not, phi)] *)
-  val not : t -> t
+  (** [neg phi] returns [Uop (Not, phi)] *)
+  val neg : t -> t
 
   (** [next phi] returns [Uop (Next, phi)] *)
   val next : t -> t
@@ -42,4 +42,7 @@ module Formula : sig
 
   (** [format fmt phi] uses [fmt] to format [phi] into its string representation. *)
   val format : Format.formatter -> t -> unit
+
+  (** [nnf phi] returns the negation normal form of [phi]. *)
+  val nnf : t -> t
 end

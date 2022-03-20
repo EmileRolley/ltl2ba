@@ -13,7 +13,7 @@ build:
 
 #> test         | Run unit tests
 test:
-	dune test
+	dune test -f
 
 #> doc          | Generates the HTML documentation via odoc
 doc:

@@ -1,6 +1,12 @@
-# LTL2BA
+<div align="center">
+	<h1>𝝋 ⇝ 𝒜</h1>
 
-Compiler of LTL formula to Büchi automata.
+![CI][ci-link] ![DOC][doc-link]
+
+ `ltl2ba` a compiler of LTL formula to Büchi automata.
+
+</div>
+
 
 ## Build
 
@@ -19,3 +25,6 @@ To run tests:
 ## Documentation
 
 Documentation can be found [here](https://emilerolley.github.io/LTL2BA/).
+
+[ci-link]: https://github.com/EmileRolley/LTL2BA/actions/workflows/build.yml/badge.svg
+[doc-link]: https://img.shields.io/badge/doc-online-blue?link=https://emilerolley.github.io/LTL2BA/ltl2ba/index.html
