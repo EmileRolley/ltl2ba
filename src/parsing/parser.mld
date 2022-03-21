@@ -10,14 +10,14 @@ https://ocaml.org/manual/lexyacc.html#s%3Aocamllex-overview} [ocamllex]} and
 φ ::= 'false'    boolean false
     | 'true'     boolean true
     | ρ          atomic proposition
-    | ⌾ φ        unary operator
-    | φ ⧆ φ      binary operator
+    | ⊙ φ        unary operator
+    | φ ⊛ φ      binary operator
     | '(' φ ')'  parenthesized formula
 
-⌾ ::= '!'  boolean negation
+⊙ ::= '!'  boolean negation
     | 'X'  Next operator
 
-⧆ ::= '|'  boolean disjunction
+⊛ ::= '|'  boolean disjunction
     | '&'  boolean conjunction
     | 'U'  Until temporal operator
     | 'R'  Release temporal operator

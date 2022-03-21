@@ -6,9 +6,16 @@ This program has been implemented during the course {i Introduction à la
 vérification} of the University of Bordeaux.
 
 The goal is to implement {!section-algo} used to translate a LTL formula into
-an equivalent Büchi automata -- on transitions.
+an equivalent {!section-genbuch}.
 
+{1 List of modules}
+
+- {{: parser.html} [Parser]} - The LTL parser
+- {{: Ltl/index.html} [Ltl]} - The LTL formul
 {1:algo The algorithm}
+
+{i This algorithm is taken from the course {e Introduction à la vérification}
+written by {{:https://www.labri.fr/profil/Zeitoun_ID1120210651}Marc Zeitoun}.}
 
 Let φ be an LTL formula.
 
@@ -33,9 +40,59 @@ To calculate {i nnf(φ)}, following rules can be applied recursively -- see
 
 {2 The second phase}
 
-For the second phase, let reassign φ as {i nnf(φ)}.
+For the second phase, let reassign φ as {i nnf(φ)} and define 𝒜 = (S, ⟶, S{_0},
+F{_1}, ..., F{_k}) as the equivalent Büchi automata of φ. An automata state s ∈
+S is a subset of sub-formulas of φ and the initial state S{_0} is \{φ\}.
 
-{1 List of modules}
+{3:reduce Reduced subset}
 
-- {{: parser.html} [Parser]} - The LTL parser
-- {{: Ltl/index.html} [Ltl]} - The LTL formula representation
+A subset Z of formulas in NNF is {b reduced} if:
+
+- formulas of Z are of the form: p, ¬q, or Xα,
+- ⊥ ∉ Z, and ∀.p ∈ AP, \{p, ¬p\} ⊈ Z.
+
+{3 Transitions}
+
+In order to define transitions from a state Y, an oriented graph is build from
+Y. Let Y = Z ∪ \{α\} where α is not a {!section-reduce} and is {b maximal} in Y
+(i.e. α is not a sub-formula of any other such formula of Y).
+Edges from Y are:
+
+- If α = α{_1} ∨ α{_2}, Y ⟶ Z ∪ \{α{_1}\} and Y ⟶ Z ∪ \{α{_2}\}.
+- If α = α{_1} ∧ α{_2}, Y ⟶ Z ∪ \{α{_1}, α{_2}\}.
+- If α = α{_1} R α{_2}, Y ⟶ Z ∪ \{α{_1}, α{_2}\} and Y ⟶ Z ∪ \{Xα, α{_2}\}.
+- If α = α{_1} U α{_2}, Y ⟶ Z ∪ \{α{_2}\} and Y ⟶{^α} Z ∪ \{Xα, α{_1}\}.
+
+The symbol ⟶{^α} means the edge is {b marked} by α.
+
+Then, is defined:
+
+- Red(Y) = \{Z reduced | Y ⟶{^*} Z\}
+- Red{_α}(Y) = \{Z reduced | Y ⟶{^*} without using an edge marked by α\}
+
+When all formulas in Z are reduced, is defined:
+
+- next(Z) = \{α | Xα ∈ Z\}
+- Σ{_Z} the intersection of all p and ¬p in Z.
+
+Finally, transitions from Y are: \{Y ⟶{^Σ{_Z}} next(Z) | Z ⊆ Red(Y)\}. Is added
+an {b acceptance condition} for each sub-formula α wich is an Until: F{_α} =
+\{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ Q and Z ⊆ Red{_α}(Y)\}.
+
+{3:genbuch Generalized Büchi automata on transitions}
+
+At the end the automata built, is a generalized Büchi automata {i on
+transitions}: it's similar to generalized Büchi automata except that {b
+acceptance conditions are set of transitions} instead of set of states. A {b
+run} from the initial state is accepted, if for each acceptance conditions, it
+goes infinitely often through a transition of this condition.
+
+{3 Summary}
+
+The automata 𝒜 = (S, ⟶, S{_0}, F{_1}, ..., F{_k}) equivalent to the formula φ,
+is defined with:
+
+- Initial state: S{_0} = \{φ\}
+- Transitions from a state Y: \{Y ⟶{^Σ{_Z}} next(Z) | Z ⊆ Red(Y)\}
+- Acceptance conditions: ∀.α ∈ φ, with α = α{_1} U α{_2}: F{_α} =
+\{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ Q and Z ⊆ Red{_α}(Y)\}
