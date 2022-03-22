@@ -20,6 +20,10 @@ doc:
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html docs/index.html
 
+#> doc-watch    | Alias for the command: dune build @doc --watch
+doc-watch:
+	dune build @doc --watch
+
 #> clean        | Cleans build artifacts
 clean:
 	dune clean

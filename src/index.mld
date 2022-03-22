@@ -79,7 +79,7 @@ When all formulas in Z are reduced, is defined:
 
 Finally, transitions from Y are: \{Y ⟶{^Σ{_Z}} next(Z) | Z ⊆ Red(Y)\}. Is added
 an {b acceptance condition} for each sub-formula α wich is an Until: F{_α} =
-\{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ Q and Z ⊆ Red{_α}(Y)\}.
+\{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ S and Z ⊆ Red{_α}(Y)\}.
 
 {3:genbuch Generalized Büchi automata on transitions}
 
@@ -97,9 +97,7 @@ is defined with:
 - Initial state: S{_0} = \{φ\}
 - Transitions from a state Y: \{Y ⟶{^Σ{_Z}} next(Z) | Z ⊆ Red(Y)\}
 - Acceptance conditions: ∀.α ∈ φ, with α = α{_1} U α{_2}: F{_α} =
-\{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ Q and Z ⊆ Red{_α}(Y)\}
-
-{i NOTE: what's Q?}
+\{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ S and Z ⊆ Red{_α}(Y)\}
 
 {2 Question}
 
@@ -122,15 +120,46 @@ Note that φ is already in NNF, therefore we can go directly to the
 First, let's calculate all sub-formulas of φ: \{p U Xq; Xq; p; q\}.
 
 Now, let's calculate transitions from the initial state S{_0} = \{p U Xq\}.
-S{_0} is not reduced and is of the form α = α{_1} U α{_2}, following transitions
-need to be added:
 
-- S{_0} ⟶ \{\} ∪ \{α{_2}\} = \{Xq\}
-- S{_0} ⟶ {^φ} \{\} ∪ \{Xα, α{_1}\} = \{X(φ), p\}
+Let's calculate the edges of the intermediate oriented graph from S{_0}:
 
-Red{_φ}(S{_0}) = \{Xq\}, because it's the only reduced state reachable by a non
-marked edge. And the acceptance condition: F{_φ} = \{S{_0} ⟶ next(\{Xq\})\} =
-\{S{_0} ⟶ \{q\})\}
++ S{_0} ⟶ \{\} ∪ \{α{_2}\} = \{Xq\}
++ S{_0} ⟶ {^φ} \{\} ∪ \{Xα, α{_1}\} = \{X(φ), p\}
+
+In first edge, \{Xq\} is reduced, therefore the transition: \{φ\} ⟶{^Σ} \{q\} =
+S{_0} ⟶{^Σ} \{q\} and the state \{q\} need to be added to 𝒜.
+
+In the second one, \{X(φ), p\} is reduced, therefore the transition: \{φ\} ⟶{^p}
+\{φ\} = S{_0} ⟶{^p} \{φ\} needs to be added to 𝒜.
+
+Finally, Red{_φ}(S{_0}) = \{Xq\}, because it's the only reduced state reachable
+by a non marked edge. Therefore, the acceptance condition: F{_φ} = \{S{_0}
+⟶{^Σ} next(\{Xq\})\} = \{S{_0} ⟶{^Σ} \{q\})\} needs to be added to 𝒜.
+
+Now, let's repeat previous steps for the state \{q\}.
+
+There is no edges from \{q\} in the intermediate oriented graph, because the
+only formula of the state is q and it's reduced.
+
+At the end, 𝒜 is defined with:
+
+- S = \{\{φ\}, \{q\}\},
+- Σ = \{p, q\}
+- \{φ\} ⟶{^Σ}\{q\} and \{φ\} ⟶{^p} \{φ\}
+- S{_0} = \{φ\}
+- F{_φ} = \{\{φ\} ⟶{^Σ} \{q\}\}
+
+{v
+
+      +-----+  {p, q}  +-----+
+   -->| {φ} |=========>| {q} |
+      +-----+          +-----+
+       |   ^
+       \---/
+        {p}
+
+   ==>: acceptance condition
+v}
 
 {3 2. ψ = G(p ⇒ XFq)}
 
