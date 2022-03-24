@@ -24,7 +24,7 @@ To run tests:
 
 ## Documentation
 
-Documentation can be found [here](https://emilerolley.github.io/LTL2BA/).
+Documentation can be found [here](https://emilerolley.github.io/ltl2ba/ltl2ba/index.html).
 
-[ci-link]: https://github.com/EmileRolley/LTL2BA/actions/workflows/build.yml/badge.svg
-[doc-link]: https://img.shields.io/badge/doc-online-blue?link=https://emilerolley.github.io/LTL2BA/ltl2ba/index.html
+[ci-link]: https://github.com/EmileRolley/ltl2ba/actions/workflows/build.yml/badge.svg
+[doc-link]: https://img.shields.io/badge/doc-online-blue?link=https://emilerolley.github.io/ltl2ba/ltl2ba/index.html

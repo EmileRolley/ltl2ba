@@ -51,6 +51,12 @@ let test_nnf_example1 () =
   al_assert_formula_eq "p U Xq" Ltl.(Prop "p" <~> next (Prop "q"))
 ;;
 
+let test_nnf_example2 () =
+  al_assert_formula_eq
+    "G(p => XFq)"
+    Ltl.(Bool false <^> (neg (Prop "p") <|> next (Bool true <~> Prop "q")))
+;;
+
 let () =
   Al.run
     "LTL to Büchi automata"
@@ -66,6 +72,7 @@ let () =
           ; test_case "nnf(¬(p U q)) = ¬p R ¬q" `Quick test_nnf_neg_until
           ; test_case "nnf(¬(p R q)) = ¬p U ¬q" `Quick test_nnf_neg_release
           ; test_case "nnf(p U Xq) = p U Xq" `Quick test_nnf_example1
+          ; test_case "nnf(G(¬p ∨ XFq) = ?" `Quick test_nnf_example2
           ; test_case "nnf(¬(¬(p U q) R (X p))) = (p U q) U (X ¬p))" `Quick test_nnf_real1
           ] )
       ]

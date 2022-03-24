@@ -7,9 +7,9 @@ maintainer: ["Emile Rolley"]
 authors: ["Emile Rolley"]
 license: "GNU-GPL-v3.0"
 tags: ["topics" "to describe" "your" "project"]
-homepage: "https://github.com/EmileRolley/LTL2BA"
-doc: "https://url/to/documentation"
-bug-reports: "https://github.com/EmileRolley/LTL2BA/issues"
+homepage: "https://github.com/EmileRolley/ltl2ba"
+doc: "https://emilerolley.github.io/ltl2ba/ltl2ba/index.html"
+bug-reports: "https://github.com/EmileRolley/ltl2ba/issues"
 depends: [
   "ocaml" {>= "4.12.0"}
   "dune" {>= "3.0" & >= "3.0.3"}
@@ -32,4 +32,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/EmileRolley/LTL2BA.git"
+dev-repo: "git+https://github.com/EmileRolley/ltl2ba.git"

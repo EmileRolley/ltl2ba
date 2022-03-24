@@ -16,11 +16,14 @@ https://ocaml.org/manual/lexyacc.html#s%3Aocamllex-overview} [ocamllex]} and
 
 ⊙ ::= '!'  boolean negation
     | 'X'  Next operator
+    | 'F'  Finally operator
+    | 'G'  Globally operator
 
-⊛ ::= '|'  boolean disjunction
-    | '&'  boolean conjunction
-    | 'U'  Until temporal operator
-    | 'R'  Release temporal operator
+⊛ ::= '|'   boolean disjunction
+    | '&'   boolean conjunction
+    | '=>'  logical implication
+    | 'U'   Until temporal operator
+    | 'R'   Release temporal operator
 
 ρ ::= [a-z][a-zA-Z0-9]*
 v}

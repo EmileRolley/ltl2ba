@@ -25,9 +25,12 @@ rule read = parse
   | newline { next_line lexbuf; read lexbuf }
   | "NOT" | "not" | "!" { NOT }
   | "X" { NEXT }
+  | "F" { FINALLY }
+  | "G" { GLOBALLY }
   | "U" { UNTIL }
   | "R" { RELEASE }
   | "|" { OR }
+  | "=>" { IMPLIES }
   | "&" { AND }
   | "(" { LPAREN }
   | ")" { RPAREN }

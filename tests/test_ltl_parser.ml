@@ -20,6 +20,7 @@ let test_parse_false () = al_assert_formula_eq "false" (Ltl.Bool false)
 let test_parse_true () = al_assert_formula_eq "true" (Ltl.Bool true)
 let test_parse_p () = al_assert_formula_eq "p" (Ltl.Prop "p")
 let test_parse_p_or_q () = al_assert_formula_eq "p | q" Ltl.(Prop "p" <|> Prop "q")
+let test_parse_implication () = al_assert_formula_eq "p => q" Ltl.(Prop "p" => Prop "q")
 
 let test_parse_priority () =
   al_assert_formula_eq
@@ -39,6 +40,12 @@ let test_parse_p_or_q_release_false () =
   al_assert_formula_eq "(p | q) R false" Ltl.(Prop "p" <|> Prop "q" <^> Bool false)
 ;;
 
+let test_parse_priority2 () =
+  al_assert_formula_eq
+    "(p U q) => (!q & p)"
+    Ltl.(Prop "p" <~> Prop "q" => (neg (Prop "q") <&> Prop "p"))
+;;
+
 let () =
   Al.run
     "LTL parsing"
@@ -50,10 +57,12 @@ let () =
           ; test_case "φ := p ∨ q" `Quick test_parse_p_or_q
           ; test_case "φ := (p ∨ q) ∧ ⊥" `Quick test_parse_p_or_q_and_false
           ; test_case "φ := p ∨ p U ¬q ∧ q" `Quick test_parse_priority
+          ; test_case "φ := p ⇒ q" `Quick test_parse_implication
           ] )
       ; ( "LTL formulas"
         , [ test_case "φ := (p ∨ q) U ⊥" `Quick test_parse_p_or_q_until_false
           ; test_case "φ := (p ∨ q) R ⊥" `Quick test_parse_p_or_q_release_false
+          ; test_case "φ := p U q ⇒ ¬q ∧ p" `Quick test_parse_priority2
           ] )
       ]
 ;;

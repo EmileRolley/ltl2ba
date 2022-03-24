@@ -4,14 +4,14 @@
 
 %token EOF
 %token <bool> BOOL
-%token NEXT UNTIL NOT OR AND RELEASE
+%token NEXT UNTIL NOT OR AND RELEASE FINALLY GLOBALLY IMPLIES
 %token LPAREN RPAREN
 %token <string> PROP
 
-%left OR
+%left OR IMPLIES
 %left AND
 %left UNTIL RELEASE
-%left NOT NEXT
+%left NOT NEXT FINALLY GLOBALLY
 
 %type <Ltl.formula> formula
 
@@ -31,10 +31,13 @@ ltl:
 %inline uop:
   | NOT { Not }
   | NEXT { Next }
+  | FINALLY { Finally }
+  | GLOBALLY { Globally }
 
 %inline bop:
   | OR { Or }
   | AND { And }
+  | IMPLIES { Implies }
   | UNTIL { Until }
   | RELEASE { Release }
 

@@ -9,7 +9,7 @@
 (formatting)
 
 (source
- (github EmileRolley/LTL2BA))
+ (github EmileRolley/ltl2ba))
 
 (authors "Emile Rolley")
 
@@ -17,7 +17,7 @@
 
 (license GNU-GPL-v3.0)
 
-(documentation https://url/to/documentation)
+(documentation https://emilerolley.github.io/ltl2ba/ltl2ba/index.html)
 
 (using menhir 2.1)
 
