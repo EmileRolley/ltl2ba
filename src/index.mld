@@ -138,25 +138,26 @@ by a non marked edge. Therefore, the acceptance condition: F{_φ} = \{S{_0}
 
 Now, let's repeat previous steps for the state \{q\}.
 
-There is no edges from \{q\} in the intermediate oriented graph, because the
-only formula of the state is q and it's reduced.
+We have Red(\{q\}) = Red_φ(\{q\}) = \{q\}, therefore, there is a transition
+from \{q\} to next(\{q\}) = \{\} marked with \{q\}.
+Same reasoning for the new state \{\}.
 
 At the end, 𝒜 is defined with:
 
 - S = \{\{φ\}, \{q\}\},
 - Σ = \{p, q\}
-- \{φ\} ⟶{^Σ}\{q\} and \{φ\} ⟶{^p} \{φ\}
+-  \{φ\} ⟶{^p} \{φ\}, \{φ\} ⟶{^Σ} \{q\}, \{q\} ⟶{^q} \{\} and \{\} ⟶{^Σ} \{\}.
 - S{_0} = \{φ\}
-- F{_φ} = \{\{φ\} ⟶{^Σ} \{q\}\}
+- F{_φ} = \{\{φ\} ⟶{^Σ} \{q\}, \{q\} ⟶{^q} \{\}, \{\} ⟶{^Σ} \{\} \}
 
 {v
 
-      +-----+  {p, q}  +-----+
-   -->| {φ} |=========>| {q} |
-      +-----+          +-----+
-       |   ^
-       \---/
-        {p}
+      +-----+   Σ   +-----+  {q}  +----+
+   -->| {φ} |======>| {q} |======>| {} |
+      +-----+       +-----+       +----+
+       |   ^                      ||   ^
+       \---/                      \\==//
+        {p}                         Σ
 
    ==>: acceptance condition
 v}
