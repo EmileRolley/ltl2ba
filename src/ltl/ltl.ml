@@ -46,6 +46,13 @@ and bop_to_string = function
   | Implies -> "⇒"
 ;;
 
+let to_string phi =
+  format Format.str_formatter phi;
+  Format.flush_str_formatter ()
+;;
+
+let compare phi psi = String.compare (to_string phi) (to_string psi)
+
 let rec nnf = function
   | (Bool _ | Prop _) as phi -> phi
   | Bop (_, Implies, _) as phi -> nnf (normalize phi)

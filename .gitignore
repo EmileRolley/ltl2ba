@@ -29,3 +29,4 @@ setup.log
 _opam/
 
 docs/index.html
+src/ltl/.jukit/.jukit_info.json

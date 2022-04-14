@@ -22,6 +22,13 @@ and bop =
   | Release
   | Implies
 
+(** {2 Implements Set.OrderedType} *)
+
+(** [compare phi psi] returns the comparison of string representation of [phi] and [psi].
+
+    TODO: A structural comparison could be implemented. *)
+val compare : formula -> formula -> int
+
 (** {2 Helping constructor functions} *)
 
 (** [neg phi] returns [Uop (Not, phi)] *)
@@ -52,6 +59,10 @@ val ( => ) : formula -> formula -> formula
 
 (** [format fmt phi] uses [fmt] to format [phi] into its string representation. *)
 val format : Format.formatter -> formula -> unit
+
+(** [to_string phi] returns the string representation of [phi] using the [format] with
+    [Format.str_formatter]. *)
+val to_string : formula -> string
 
 (** [nnf phi] returns the negation normal form of [phi], i.e an equivalent LTL formula of
     [phi], where:

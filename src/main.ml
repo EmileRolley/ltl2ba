@@ -21,14 +21,8 @@ let driver (formula : string option) (_debug : bool) : int =
   |> Option.fold ~none:return_ok ~some:(fun formula ->
          match parse (Lexing.from_string formula) with
          | Some phi ->
-           let phi_str =
-             Ltl.format Format.str_formatter phi;
-             Format.flush_str_formatter ()
-           in
-           let nnf_phi_str =
-             phi |> Ltl.nnf |> Ltl.format Format.str_formatter;
-             Format.flush_str_formatter ()
-           in
+           let phi_str = Ltl.to_string phi
+           and nnf_phi_str = phi |> Ltl.nnf |> Ltl.to_string in
            Printf.printf "     φ := %s" phi_str;
            Printf.printf "\nnnf(φ) := %s\n" nnf_phi_str;
            return_ok
