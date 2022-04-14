@@ -28,3 +28,24 @@ let next state =
       | _ -> None)
     state
 ;;
+
+let is_reduced state =
+  state
+  |> FormulaSet.for_all (function
+         | Bool b ->
+           (* ⊥ ∉ Z *)
+           b
+         | Prop p ->
+           (* ∀.p ∈ AP, \{p, ¬p\} ⊈ Z *)
+           FormulaSet.for_all
+             (function
+               | Uop (Not, Prop q) -> p <> q
+               | _ -> true)
+             state
+         | Uop ((Not | Next), _) ->
+           (* formulas of Z are of the form: p, ¬q, or Xα *)
+           true
+         | _ -> false)
+;;
+
+let red state = state

@@ -19,3 +19,9 @@ type state = FormulaSet.t
 
 (** [next state] returns [{α | Xα ∈ state}] *)
 val next : state -> state
+
+(** [is_reduced state] returns true if the [state] is reduced. *)
+val is_reduced : state -> bool
+
+(** [red state] returns [Red(Y) = {Z reduced | Y ⟶{^*} Z} ] *)
+val red : state -> state
