@@ -7,3 +7,7 @@
 (documentation
  (package ltl2ba)
  (mld_files index))
+
+(env
+  (dev
+    (flags (:standard -w -66))))

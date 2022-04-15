@@ -18,6 +18,10 @@ end
 
 type state = FormulaSet.t
 
+module StateSet : Set.S with type elt = state
+
+type states = StateSet.t
+
 (** [next state] returns [{α | Xα ∈ state}] *)
 val next : state -> state
 
@@ -29,4 +33,4 @@ val is_reduced : state -> bool
 val is_maximal : formula -> state -> bool
 
 (** [red state] returns [Red(Y) = {Z reduced | Y ⟶{^*} Z} ] *)
-val red : state -> state
+val red : state -> states

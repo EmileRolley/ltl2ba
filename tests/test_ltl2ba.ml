@@ -19,7 +19,7 @@ module To_test = struct
   let next : state -> state = Algorithm.next
   let is_reduced : state -> bool = Algorithm.is_reduced
   let is_maximal : formula -> state -> bool = Algorithm.is_maximal
-  let red : state -> state = Algorithm.red
+  let red : state -> states = Algorithm.red
 end
 
 let al_assert_formula_eq = al_assert_formula_eq_according_to_test To_test.nnf
@@ -137,10 +137,6 @@ let test_is_reduced_p_and_complex_formula () =
     (not @@ To_test.is_reduced (FormulaSet.of_list [ p; p_U_Xq ]))
 ;;
 
-let test_red_empty () =
-  al_assert "should be empty" FormulaSet.(empty = To_test.red FormulaSet.empty)
-;;
-
 let test_is_maximal_phi_not_in_state () =
   al_assert "should be false" (not @@ To_test.is_maximal (Bool true) FormulaSet.empty)
 ;;
@@ -155,6 +151,70 @@ let test_is_not_maximal () =
   and q = Prop "q" in
   let state = FormulaSet.of_list [ p; q; q <~> (p <^> q) ] in
   al_assert "should not be true" (not @@ To_test.is_maximal p state)
+;;
+
+let test_red_empty () =
+  al_assert "should be empty" (StateSet.empty = To_test.red FormulaSet.empty)
+;;
+
+let test_red_already_reduced () =
+  let state = FormulaSet.of_list [ Prop "p"; neg (Prop "q"); Ltl.next (Prop "p") ] in
+  let expected = StateSet.singleton state in
+  al_assert "should be equals" (expected = To_test.red state)
+;;
+
+let test_red_disjunction () =
+  let state = FormulaSet.of_list [ Prop "p"; Prop "p" <|> Prop "q" ] in
+  let expected =
+    StateSet.of_list
+      [ FormulaSet.singleton (Prop "p"); FormulaSet.of_list [ Prop "p"; Prop "q" ] ]
+  in
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+;;
+
+let test_red_conjunction () =
+  let state = FormulaSet.of_list [ Prop "p"; Prop "p" <&> Prop "q" ] in
+  let expected = StateSet.of_list [ FormulaSet.of_list [ Prop "p"; Prop "q" ] ] in
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+;;
+
+let test_red_release () =
+  let state = FormulaSet.of_list [ Prop "p"; Prop "p" <^> Prop "q" ] in
+  let expected =
+    StateSet.of_list
+      FormulaSet.
+        [ of_list [ Prop "p"; Prop "q" ]
+        ; of_list [ Prop "p"; Ltl.next (Prop "p" <^> Prop "q"); Prop "q" ]
+        ]
+  in
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+;;
+
+let test_red_until () =
+  let phi = Prop "p" <~> Ltl.next (Prop "q") in
+  let expected =
+    StateSet.of_list
+      FormulaSet.[ singleton (Ltl.next (Prop "q")); of_list [ Prop "p"; Ltl.next phi ] ]
+  in
+  al_assert
+    "should be equals"
+    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)))
+;;
+
+(** Red({p U (p v Xq)}) = { {p}, {Xq}, {X(p U (p v Xq)), p} }*)
+let test_red_multiple_lvl () =
+  let phi = Prop "p" <~> (Prop "p" <|> Ltl.next (Prop "q")) in
+  let expected =
+    StateSet.of_list
+      FormulaSet.
+        [ singleton (Prop "p")
+        ; singleton (Ltl.next (Prop "q"))
+        ; of_list [ Prop "p"; Ltl.next phi ]
+        ]
+  in
+  al_assert
+    "should be equals"
+    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)))
 ;;
 
 let () =
@@ -204,7 +264,18 @@ let () =
           ] )
       ; ( "Calculate Red(Z)"
         , [ test_case "Red({}) = {}" `Quick test_red_empty
-          ; test_case "Red({p, ¬q, Xp}) = {p, ¬q, Xp}" `Quick test_red_empty
+          ; test_case "Red({p, ¬q, Xp}) = { {p, ¬q, Xp} }" `Quick test_red_already_reduced
+          ; test_case "Red({p, p v q}) = { {p}, {p, q} }" `Quick test_red_disjunction
+          ; test_case "Red({p, p ∧ q}) = { {p, q} }" `Quick test_red_conjunction
+          ; test_case
+              "Red({p, p R q}) = { {p, q}, {X(p R q), q} }"
+              `Quick
+              test_red_release
+          ; test_case "Red({p U Xq}) = { {Xq}, {X(p U Xq), p} }" `Quick test_red_until
+          ; test_case
+              "Red({p U (p v Xq)}) = { {p}, {Xq}, {X(p U (p v Xq)), p} }"
+              `Quick
+              test_red_multiple_lvl
           ] )
       ]
 ;;
