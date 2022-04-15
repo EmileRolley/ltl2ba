@@ -74,6 +74,13 @@ let test_is_subformula_p_or_q_in_q_or_p () =
   al_assert "should be true" (To_test.is_subformula phi psi)
 ;;
 
+let test_is_subformula_bug () =
+  let p = Prop "p"
+  and q = Prop "q" in
+  let phi = q <~> (p <^> q) in
+  al_assert "should be true" (To_test.is_subformula phi p)
+;;
+
 let () =
   Al.run
     "LTL basic test"
@@ -98,6 +105,7 @@ let () =
               `Quick
               test_is_subformula_p_or_q_in_p_U_p_or_q
           ; test_case "(p ∨ q) ∈ (q ∨ p)" `Quick test_is_subformula_p_or_q_in_q_or_p
+          ; test_case "p ∈ (q U (p R q))" `Quick test_is_subformula_bug
           ; test_case "p ∉ q " `Quick test_is_subformula_p_q
           ] )
       ]

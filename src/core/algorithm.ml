@@ -48,4 +48,12 @@ let is_reduced state =
          | _ -> false)
 ;;
 
-let red state = state
+let is_maximal phi state =
+  let open FormulaSet in
+  let s = remove phi state in
+  if is_empty s
+  then mem phi state
+  else s |> exists (fun psi -> Ltl.is_subformula psi phi) |> not
+;;
+
+let red state = FormulaSet.map (fun s -> s) state
