@@ -24,9 +24,10 @@ and bop =
 
 (** {2 Implements Set.OrderedType} *)
 
-(** [compare phi psi] returns the comparison of string representation of [phi] and [psi].
+(** [is_equals phi psi] returns true if [phi] is struturaly equivalent to [psi]. *)
+val is_equals : formula -> formula -> bool
 
-    TODO: A structural comparison could be implemented. *)
+(** [compare phi psi] returns the comparison of string representation of [phi] and [psi]. *)
 val compare : formula -> formula -> int
 
 (** {2 Helping constructor functions} *)

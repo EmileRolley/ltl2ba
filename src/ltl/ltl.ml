@@ -51,7 +51,19 @@ let to_string phi =
   Format.flush_str_formatter ()
 ;;
 
-let compare phi psi = String.compare (to_string phi) (to_string psi)
+let rec is_equals phi psi =
+  match phi, psi with
+  | Bool _, Bool _ | Prop _, Prop _ -> phi = psi
+  | Uop (op, phi'), Uop (op', psi') when op = op' -> is_equals phi' psi'
+  | Bop (phi', bop, phi''), Bop (psi', bop', psi'') when bop = bop' ->
+    (is_equals phi' psi' && is_equals phi'' psi'')
+    || (is_equals phi' psi'' && is_equals phi'' psi')
+  | _ -> false
+;;
+
+let compare phi psi =
+  if is_equals phi psi then 0 else String.compare (to_string phi) (to_string psi)
+;;
 
 let rec nnf = function
   | (Bool _ | Prop _) as phi -> phi
