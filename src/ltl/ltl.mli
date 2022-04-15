@@ -65,6 +65,9 @@ val format : Format.formatter -> formula -> unit
     [Format.str_formatter]. *)
 val to_string : formula -> string
 
+(** [is_subformula phi psi] returns true if [psi] is a sub-formula of [phi]. *)
+val is_subformula : formula -> formula -> bool
+
 (** [nnf phi] returns the negation normal form of [phi], i.e an equivalent LTL formula of
     [phi], where:
 

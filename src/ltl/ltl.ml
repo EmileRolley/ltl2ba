@@ -102,3 +102,13 @@ and get_dual = function
   | Release -> (* nnf(¬(φ R ψ)) = nnf(¬φ) U nnf(¬ψ) *) ( <~> )
   | Implies -> failwith "should never be reached"
 ;;
+
+let rec is_subformula phi psi =
+  if is_equals phi psi
+  then true
+  else (
+    match phi with
+    | Bool _ | Prop _ -> phi = psi
+    | Uop (_, phi') -> is_subformula phi' psi
+    | Bop (phi', _, phi'') -> is_subformula phi' psi || is_subformula phi'' psi)
+;;
