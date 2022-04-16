@@ -160,12 +160,14 @@ let red state =
   let rec reduce (states : states) : states =
     if for_all is_reduced states
     then states
-    else
-      StateSet.fold
-        (fun state new_states -> union new_states (reduce_state state))
-        states
-        empty
-      |> reduce
+    else (
+      let new_states =
+        StateSet.fold
+          (fun state new_states -> union new_states (reduce_state state))
+          states
+          empty
+      in
+      if StateSet.equal new_states states then states else reduce new_states)
   in
   if FormulaSet.is_empty state then empty else reduce (singleton state)
 ;;
