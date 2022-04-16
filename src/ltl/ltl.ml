@@ -76,15 +76,15 @@ let rec nnf = function
     | Not ->
       (match phi' with
       | Bool b -> Bool (not b)
-      | Prop _ as p -> neg p (* leaf reached, nnf(¬p) = ¬p *)
-      | Uop ((Finally | Globally), _) -> nnf (normalize phi)
+      | Prop _ -> neg phi' (* leaf reached, nnf(¬p) = ¬p *)
+      | Uop ((Finally | Globally), _) -> nnf (neg (normalize phi'))
       | Uop (Next, psi) ->
         (* nnf(¬Xφ) = X(nnf(¬φ)) *)
         next (nnf (neg psi))
       | Uop (Not, psi) ->
         (* nnf(¬¬φ) = nnf(φ) *)
         nnf psi
-      | Bop (_, Implies, _) -> nnf (normalize phi)
+      | Bop (_, Implies, _) -> nnf (neg (normalize phi'))
       | Bop (psi, o, psi') -> get_dual o (nnf (neg psi)) (nnf (neg psi'))))
 
 (** Returns the equivalent function in its normalized form: only U and R binary temporal

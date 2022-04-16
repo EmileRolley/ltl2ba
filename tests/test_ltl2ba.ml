@@ -59,6 +59,12 @@ let test_nnf_example1 () =
   al_assert_formula_eq "p U Xq" Ltl.(Prop "p" <~> next (Prop "q"))
 ;;
 
+let test_nnf_not_F () = al_assert_formula_eq "!Fq" Ltl.(Bool false <^> neg (Prop "q"))
+
+let test_nnf_F_implies () =
+  al_assert_formula_eq "Fq => p" Ltl.(Bool false <^> neg (Prop "q") <|> Prop "p")
+;;
+
 let test_nnf_example2 () =
   al_assert_formula_eq
     "G(p => XFq)"
@@ -276,6 +282,8 @@ let () =
           ; test_case "nnf(¬(p U q)) = ¬p R ¬q" `Quick test_nnf_neg_until
           ; test_case "nnf(¬(p R q)) = ¬p U ¬q" `Quick test_nnf_neg_release
           ; test_case "nnf(p U Xq) = p U Xq" `Quick test_nnf_example1
+          ; test_case "nnf(¬Fq) = (⊥ R ¬q)" `Quick test_nnf_not_F
+          ; test_case "nnf(Fq => p) = (⊥ R ¬q) v p" `Quick test_nnf_F_implies
           ; test_case "nnf(G(¬p ∨ XFq) = ?" `Quick test_nnf_example2
           ; test_case "nnf(¬(¬(p U q) R (X p))) = (p U q) U (X ¬p))" `Quick test_nnf_real1
           ] )
