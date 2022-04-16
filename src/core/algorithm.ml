@@ -56,6 +56,17 @@ let next state =
     state
 ;;
 
+let sigma state =
+  FormulaSet.(
+    fold
+      (fun phi formula_set ->
+        match phi with
+        | Prop _ | Uop (Not, Prop _) -> add phi formula_set
+        | _ -> formula_set)
+      state
+      empty)
+;;
+
 let is_reduced state =
   state
   |> FormulaSet.for_all (function

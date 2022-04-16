@@ -25,6 +25,9 @@ type states = StateSet.t
 (** [next state] returns [{α | Xα ∈ state}] *)
 val next : state -> state
 
+(** [sigma state] returns the intersection of all p and ¬p in Z, p ∈ AP. *)
+val sigma : state -> FormulaSet.t
+
 (** [is_reduced state] returns true if the [state] is reduced. *)
 val is_reduced : state -> bool
 
