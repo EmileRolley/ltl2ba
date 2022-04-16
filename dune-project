@@ -31,6 +31,7 @@
    (menhir (>= 20200211))
    (cmdliner (>= 1.1.0))
    (ocamlgraph (>= 2.0.0))
+   (bisect_ppx (and :dev (>= 2.5.0)))
    (alcotest (and :with-test (>= 1.5.0))))
  (tags
   (topics "to describe" your project)))

@@ -7,7 +7,8 @@
 (library
  (name parsing)
  (modules (:standard))
- (libraries ltl))
+ (libraries ltl)
+ (instrumentation (backend bisect_ppx)))
 
 (documentation
  (package ltl2ba)

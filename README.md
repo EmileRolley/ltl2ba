@@ -1,7 +1,7 @@
 <div align="center">
 	<h1>𝝋 ⇝ 𝒜</h1>
 
-![CI][ci-link] ![DOC][doc-link]
+![CI][ci-link] ![COV][cov-link] ![DOC][doc-link]
 
  `ltl2ba` a compiler of LTL formula to Büchi automata.
 
@@ -27,4 +27,5 @@ To run tests:
 Documentation can be found [here](https://emilerolley.github.io/ltl2ba/ltl2ba/index.html).
 
 [ci-link]: https://github.com/EmileRolley/ltl2ba/actions/workflows/build.yml/badge.svg
+[cov-link]: https://codecov.io/gh/EmileRolley/ltl2ba/branch/main/graph/badge.svg?token=PIIQ0CSE8C
 [doc-link]: https://img.shields.io/badge/doc-online-blue?link=https://emilerolley.github.io/ltl2ba/ltl2ba/index.html

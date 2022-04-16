@@ -1,4 +1,5 @@
 (library
  (name ltl)
  (public_name ltl2ba.ltl)
- (modules (:standard)))
+ (modules (:standard))
+ (instrumentation (backend bisect_ppx)))

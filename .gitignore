@@ -28,6 +28,8 @@ setup.log
 # Local OPAM switch
 _opam/
 
+_coverage/
+
 docs/index.html
 src/ltl/.jukit/.jukit_info.json
 src/core/.jukit/.jukit_info.json
