@@ -33,3 +33,5 @@ _coverage/
 docs/index.html
 src/ltl/.jukit/.jukit_info.json
 src/core/.jukit/.jukit_info.json
+
+test.dot

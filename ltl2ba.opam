@@ -16,6 +16,7 @@ depends: [
   "menhir" {>= "20200211"}
   "cmdliner" {>= "1.1.0"}
   "ocamlgraph" {>= "2.0.0"}
+  "ANSITerminal" {>= "0.8.3"}
   "bisect_ppx" {dev & >= "2.5.0"}
   "alcotest" {with-test & >= "1.5.0"}
   "odoc" {with-doc}

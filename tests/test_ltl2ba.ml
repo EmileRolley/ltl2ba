@@ -142,6 +142,11 @@ let test_is_maximal_phi_not_in_state () =
   al_assert "should be false" (not @@ To_test.is_maximal (Bool true) FormulaSet.empty)
 ;;
 
+let test_is_not_maximal_true_in_aUq () =
+  let state = FormulaSet.of_list [ Bool true; Ltl.(Prop "p" <~> Prop "q") ] in
+  al_assert "should be false" (not @@ To_test.is_maximal (Bool true) state)
+;;
+
 let test_is_maximal_p_in_p () =
   let p = Prop "p" in
   al_assert "should be true" (To_test.is_maximal p (FormulaSet.singleton p))
@@ -198,6 +203,23 @@ let test_red_conjunction () =
   let state = FormulaSet.of_list [ Prop "p"; Prop "p" <&> Prop "q" ] in
   let expected = StateSet.of_list [ FormulaSet.of_list [ Prop "p"; Prop "q" ] ] in
   al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+;;
+
+let test_red_next () =
+  let state =
+    FormulaSet.of_list
+      Ltl.[ next (Bool false <^> (neg (Prop "p") <|> next (Bool true <~> Prop "q"))) ]
+  in
+  let expected = StateSet.of_list [ state ] in
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+;;
+
+let test_is_reduced_bug () =
+  let state =
+    FormulaSet.of_list
+      Ltl.[ next (Bool false <^> (neg (Prop "p") <|> next (Bool true <~> Prop "q"))) ]
+  in
+  al_assert "should be true" (To_test.is_reduced state)
 ;;
 
 let test_red_release () =
@@ -278,9 +300,11 @@ let () =
               "not is_reduced({p, (p U Xq)})"
               `Quick
               test_is_reduced_p_and_complex_formula
+          ; test_case "not is_reduced(X(⊥ R (¬p ∨ X(⊤ U q))))" `Quick test_is_reduced_bug
           ] )
       ; ( "Formula is maximal in state"
         , [ test_case "not is_maximal(⊤, {})" `Quick test_is_maximal_phi_not_in_state
+          ; test_case "not is_maximal(⊤, {a U q})" `Quick test_is_not_maximal_true_in_aUq
           ; test_case "is_maximal(p, {p})" `Quick test_is_maximal_p_in_p
           ; test_case "not is_maximal(p, {p, q, q U (p R q)})" `Quick test_is_not_maximal
           ] )
@@ -295,6 +319,7 @@ let () =
           ; test_case "red({p, ¬q, Xp}) = { {p, ¬q, Xp} }" `Quick test_red_already_reduced
           ; test_case "red({p, p v q}) = { {p}, {p, q} }" `Quick test_red_disjunction
           ; test_case "red({p, p ∧ q}) = { {p, q} }" `Quick test_red_conjunction
+          ; test_case "red({X(p R q)}) = { {X(p R q)} }" `Quick test_red_next
           ; test_case
               "red({p, p R q}) = { {p, q}, {X(p R q), q} }"
               `Quick

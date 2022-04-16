@@ -12,34 +12,35 @@ module StateSet = Set.Make (struct
   let compare = FormulaSet.compare
 end)
 
-module TransitionGraph = struct
-  module FormulaSetLabel = struct
-    type t = FormulaSet.t
+module Label = struct
+  type t = FormulaSet.t
 
-    let compare = FormulaSet.compare
-    let equal s s' = 0 = FormulaSet.compare s s'
-    let hash = Hashtbl.hash
-    let default = FormulaSet.empty
-  end
-
-  include Graph.Imperative.Digraph.ConcreteLabeled (FormulaSetLabel) (FormulaSetLabel)
+  let compare = FormulaSet.compare
+  let equal s s' = 0 = FormulaSet.compare s s'
+  let hash = Hashtbl.hash
+  let default = FormulaSet.empty
 end
+
+module TransitionGraph = Graph.Imperative.Digraph.ConcreteLabeled (Label) (Label)
 
 type state = FormulaSet.t
 
-let state_to_string (state : state) : string =
-  Printf.sprintf
-    "{ %s }"
-    (FormulaSet.fold
-       (fun f s -> s ^ (if 0 <> String.length s then ", " else "") ^ to_string f)
-       state
-       "")
+let state_to_string ?(quote = false) ?(empty = "∅") (state : state) : string =
+  if FormulaSet.is_empty state
+  then empty
+  else
+    Printf.sprintf
+      (if quote then "\" %s \"" else "%s")
+      (FormulaSet.fold
+         (fun f s -> s ^ (if 0 <> String.length s then ", " else "") ^ to_string f)
+         state
+         "")
 ;;
 
 type states = StateSet.t
 
 (* TODO: could factorized with [state_to_string]. *)
-let _states_to_string (states : states) : string =
+let states_to_string (states : states) : string =
   Printf.sprintf
     "{ %s }"
     (StateSet.fold
@@ -67,6 +68,16 @@ let sigma state =
       empty)
 ;;
 
+let formula_is_reduced = function
+  | Bool b ->
+    (* ⊥ ∉ Z *)
+    b
+  | Prop _ | Uop (Not, Prop _) | Uop (Next, _) ->
+    (* formulas of Z are of the form: p, ¬q, or Xα *)
+    true
+  | _ -> false
+;;
+
 let is_reduced state =
   state
   |> FormulaSet.for_all (function
@@ -80,7 +91,7 @@ let is_reduced state =
                | Uop (Not, Prop q) -> p <> q
                | _ -> true)
              state
-         | Uop ((Not | Next), _) ->
+         | Uop (Not, Prop _) | Uop (Next, _) ->
            (* formulas of Z are of the form: p, ¬q, or Xα *)
            true
          | _ -> false)
@@ -91,17 +102,33 @@ let is_maximal phi state =
   let s = remove phi state in
   if is_empty s
   then mem phi state
-  else s |> exists (fun psi -> Ltl.is_subformula psi phi) |> not
+  else
+    s
+    |> exists (fun psi ->
+           Ltl.(
+             is_subformula psi phi
+             || (* It's assumes that AP are one letter long, a structural comparison
+                   should be implemented instead.*)
+             -1 = String.compare (to_string psi) (to_string phi)))
+    |> not
 ;;
 
 let red state =
   let open StateSet in
   (* Reduces first maximal not reduced subset of [tmp_state] *)
+  (* FIXME: infinite loop for formulas with G and R. *)
   let reduce_state (tmp_state : state) : states =
+    Printf.printf "\tReducing state: %s\n" (state_to_string tmp_state);
+    (* Finds first maximal not reduced subset of [tmp_state], if exists, otherwise,
+       returns simply the first formula of [tmp_state]. *)
     tmp_state
-    |> FormulaSet.find_last_opt (fun phi ->
-           is_maximal phi tmp_state && not (is_reduced tmp_state))
-    |> Option.fold ~none:(singleton tmp_state) ~some:(fun alpha ->
+    |> FormulaSet.filter (fun phi -> not (formula_is_reduced phi))
+    |> FormulaSet.find_last_opt (fun phi -> is_maximal phi tmp_state)
+    |> Option.fold
+       (* FIXME: what is supposed to be done when there is no maximal unreduced formulas
+          in [tmp_state]? *)
+         ~none:(singleton tmp_state)
+         ~some:(fun alpha ->
            let tmp_state = FormulaSet.remove alpha tmp_state in
            match alpha with
            | Bop (a1, Or, a2) ->
@@ -123,9 +150,10 @@ let red state =
              |> add FormulaSet.(add a2 tmp_state)
              |> add FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1)
            | _ ->
+             Ltl.to_string alpha |> Printf.printf "%s\n";
              failwith
-               "should never be reached, as [alpha] is the maximal not reduced subset of \
-                [state]")
+               " should never be reached, as [alpha] is the maximal not reduced subset \
+                of [state]\n")
   in
   (* Reduces the state in [states] until all states are reduced, meaning that [states]
      contains all the leafs of the temporary oriented graph built from [state] *)

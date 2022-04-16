@@ -1,16 +1,34 @@
-(** Prints debug information *)
-let debug_flag = ref false
-
 open Cmdliner
 
-let debug = Arg.(value & flag & info [ "debug"; "d" ] ~doc:"Prints debug information")
+let verbose = Arg.(value & flag & info [ "verbose"; "v" ] ~doc:"Prints information")
+let no_color = Arg.(value & flag & info [ "no-color"; "c" ] ~doc:"Disables colors")
 
-let formula =
+let dot_path =
   Arg.(
     value
     & opt (some string) None
-    & info [ "formula"; "f" ] ~doc:"Input LTL formula to compile")
+    & info [ "dot-path"; "d" ] ~doc:"Path to writes automata DOT file into")
 ;;
 
-let ltl2ba_t f = Term.(const f $ formula $ debug)
+let formula =
+  Arg.(required & pos 0 (some string) None & info [] ~doc:"LTL formula to compile")
+;;
+
+let ltl2ba_t f = Term.(const f $ formula $ dot_path $ verbose $ no_color)
 let infos = Cmd.info "ltl2ba"
+let verbose_flag = ref false
+let style_flag = ref true
+
+let with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) format)
+    : string
+  =
+  if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
+;;
+
+let log_marker () = with_style ANSITerminal.[ Bold; blue ] "[LOG] "
+
+let print_log (fmt : ('a, out_channel, unit) format) =
+  if !verbose_flag
+  then Printf.printf ("%s" ^^ fmt ^^ "\n%!") (log_marker ())
+  else Printf.ifprintf stdout fmt
+;;
