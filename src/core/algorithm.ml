@@ -44,7 +44,8 @@ let states_to_string (states : states) : string =
   Printf.sprintf
     "{ %s }"
     (StateSet.fold
-       (fun f s -> s ^ (if 0 <> String.length s then ", " else "") ^ state_to_string f)
+       (fun f s ->
+         s ^ (if 0 <> String.length s then ", " else "") ^ state_to_string ~quote:true f)
        states
        "")
 ;;
@@ -121,16 +122,23 @@ let red state =
     Printf.printf "\tReducing state: %s\n" (state_to_string tmp_state);
     (* Finds first maximal not reduced subset of [tmp_state], if exists, otherwise,
        returns simply the first formula of [tmp_state]. *)
-    tmp_state
-    |> FormulaSet.filter (fun phi -> not (formula_is_reduced phi))
-    |> FormulaSet.find_last_opt (fun phi -> is_maximal phi tmp_state)
+    let unreduced_subset =
+      tmp_state |> FormulaSet.filter (fun phi -> not (formula_is_reduced phi))
+    in
+    (* |> fun s -> *)
+    (* Printf.printf "\tNot reduced formulas: %s\n" (state_to_string s); *)
+    (* s *)
+    unreduced_subset
+    |> FormulaSet.find_last_opt (fun phi -> is_maximal phi unreduced_subset)
     |> Option.fold
        (* FIXME: what is supposed to be done when there is no maximal unreduced formulas
           in [tmp_state]? *)
          ~none:(singleton tmp_state)
          ~some:(fun alpha ->
+           Printf.printf "\tMaximal unreduced formula: %s\n" (to_string alpha);
            let tmp_state = FormulaSet.remove alpha tmp_state in
            match alpha with
+           | Prop _ | Bool _ -> empty |> add FormulaSet.(add alpha tmp_state)
            | Bop (a1, Or, a2) ->
              (* If α = α1 ∨ α2, Y ⟶ Z ∪ {α1} and Y ⟶ Z ∪ {α2} *)
              empty
@@ -159,15 +167,28 @@ let red state =
      contains all the leafs of the temporary oriented graph built from [state] *)
   let rec reduce (states : states) : states =
     if for_all is_reduced states
-    then states
+    then (
+      Printf.printf "\tAll states are reduced in : %s\n" (states_to_string states);
+      states)
     else (
       let new_states =
+        states
+        |> StateSet.filter (fun state -> not @@ FormulaSet.mem (Bool false) state)
+        |> fun states_without_false ->
         StateSet.fold
-          (fun state new_states -> union new_states (reduce_state state))
-          states
+          (fun state new_states ->
+            union
+              new_states
+              (if is_reduced state then singleton state else reduce_state state))
+          states_without_false
           empty
       in
-      if StateSet.equal new_states states then states else reduce new_states)
+      (* FIXME: should not be possible? *)
+      if StateSet.equal new_states states
+      then (
+        Printf.printf "\tNo new states are generated in : %s\n" (states_to_string states);
+        states)
+      else reduce new_states)
   in
   if FormulaSet.is_empty state then empty else reduce (singleton state)
 ;;
