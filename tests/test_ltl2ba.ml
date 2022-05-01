@@ -156,14 +156,22 @@ let test_is_maximal_phi_not_in_state () =
   al_assert "should be false" (not @@ To_test.is_maximal (Bool true) FormulaSet.empty)
 ;;
 
-let test_is_not_maximal_true_in_aUq () =
+let test_is_maximal_true_in_aUq () =
   let state = FormulaSet.of_list [ Bool true; Ltl.(Prop "p" <~> Prop "q") ] in
-  al_assert "should be false" (not @@ To_test.is_maximal (Bool true) state)
+  al_assert "should be true" (To_test.is_maximal (Bool true) state)
 ;;
 
 let test_is_maximal_p_in_p () =
   let p = Prop "p" in
   al_assert "should be true" (To_test.is_maximal p (FormulaSet.singleton p))
+;;
+
+let test_is_maximal_bug () =
+  let phi = Bool true <~> Prop "q" in
+  let psi = Bool false <^> (neg @@ Prop "p" <|> phi) in
+  let state = FormulaSet.of_list [ phi; psi ] in
+  al_assert "should be false" (not @@ To_test.is_maximal phi state);
+  al_assert "should be true" (To_test.is_maximal psi state)
 ;;
 
 let test_is_not_maximal () =
@@ -327,9 +335,10 @@ let () =
           ] )
       ; ( "Formula is maximal in state"
         , [ test_case "not is_maximal(⊤, {})" `Quick test_is_maximal_phi_not_in_state
-          ; test_case "not is_maximal(⊤, {a U q})" `Quick test_is_not_maximal_true_in_aUq
-          ; test_case "is_maximal(p, {p})" `Quick test_is_maximal_p_in_p
           ; test_case "not is_maximal(p, {p, q, q U (p R q)})" `Quick test_is_not_maximal
+          ; test_case "is_maximal(⊤, {⊤, a U q})" `Quick test_is_maximal_true_in_aUq
+          ; test_case "is_maximal(p, {p})" `Quick test_is_maximal_p_in_p
+          ; test_case "is_maximal bug #1" `Quick test_is_maximal_bug
           ] )
       ; ( "Σ(Z)"
         , [ test_case "sigma({}) = {}" `Quick test_sigma_empty

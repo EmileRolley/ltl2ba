@@ -34,17 +34,26 @@ let parse (lexbuf : lexbuf) : formula option =
     None
 ;;
 
+(* TODO: to refactor in order to avoid using ref => using a record to keep track of
+   unmanaged and managed states. *)
 let translate (phi : formula) : Al.TransitionGraph.t =
+  let open Al in
   let g = G.create () in
+  let already_managed_states = ref StateSet.empty in
   let rec build (unmanaged_states : Al.states) : Al.states =
-    let open Al.StateSet in
-    if is_empty unmanaged_states
+    Cli.print_log "\tUnmanaged states1: %s" (Al.states_to_string unmanaged_states);
+    Cli.print_log
+      "\tAlready managed states: %s"
+      (Al.states_to_string !already_managed_states);
+    let open StateSet in
+    if subset unmanaged_states !already_managed_states
     then empty
     else (
       Cli.print_log "\tUnmanaged state: %s" (Al.states_to_string unmanaged_states);
-      fold
+      StateSet.fold
         (fun s0 states ->
           Cli.print_log "\t\tY = {%s}" (Al.state_to_string s0);
+          already_managed_states := StateSet.add s0 !already_managed_states;
           if Al.FormulaSet.is_empty s0
           then (
             G.add_edge g s0 s0;
@@ -64,7 +73,7 @@ let translate (phi : formula) : Al.TransitionGraph.t =
       |> filter (fun s -> not (mem s unmanaged_states))
       |> build)
   in
-  ignore Al.(build (StateSet.singleton (FormulaSet.singleton phi)));
+  ignore (build (StateSet.singleton (FormulaSet.singleton phi)));
   g
 ;;
 
