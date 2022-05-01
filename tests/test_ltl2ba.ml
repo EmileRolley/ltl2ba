@@ -65,6 +65,14 @@ let test_nnf_F_implies () =
   al_assert_formula_eq "Fq => p" Ltl.(Bool false <^> neg (Prop "q") <|> Prop "p")
 ;;
 
+let test_nnf_neg_implies () =
+  al_assert_formula_eq "!(q => p)" Ltl.(Prop "q" <&> neg (Prop "p"))
+;;
+
+let test_nnf_neg_globally () =
+  al_assert_formula_eq "!G(q)" Ltl.(Bool true <~> neg (Prop "q"))
+;;
+
 let test_nnf_example2 () =
   al_assert_formula_eq
     "G(p => XFq)"
@@ -211,6 +219,11 @@ let test_red_conjunction () =
   al_assert "should be equals" StateSet.(equal expected (To_test.red state))
 ;;
 
+let test_red_false () =
+  let state = FormulaSet.of_list [ Bool false; Prop "p" <&> Prop "q" ] in
+  al_assert "should be equals" StateSet.(equal empty (To_test.red state))
+;;
+
 let test_red_next () =
   let state =
     FormulaSet.of_list
@@ -281,6 +294,8 @@ let () =
           ; test_case "nnf(¬(p ∧ q)) = ¬p v ¬q" `Quick test_nnf_neg_and
           ; test_case "nnf(¬(p U q)) = ¬p R ¬q" `Quick test_nnf_neg_until
           ; test_case "nnf(¬(p R q)) = ¬p U ¬q" `Quick test_nnf_neg_release
+          ; test_case "nnf(¬(q => p)) = q ∧ ¬p" `Quick test_nnf_neg_implies
+          ; test_case "nnf(¬G(p)) = ⊤ U ¬p" `Quick test_nnf_neg_globally
           ; test_case "nnf(p U Xq) = p U Xq" `Quick test_nnf_example1
           ; test_case "nnf(¬Fq) = (⊥ R ¬q)" `Quick test_nnf_not_F
           ; test_case "nnf(Fq => p) = (⊥ R ¬q) v p" `Quick test_nnf_F_implies
@@ -325,8 +340,9 @@ let () =
       ; ( "Calculate Red(Z)"
         , [ test_case "red({}) = {}" `Quick test_red_empty
           ; test_case "red({p, ¬q, Xp}) = { {p, ¬q, Xp} }" `Quick test_red_already_reduced
-          ; test_case "red({p, p v q}) = { {p}, {p, q} }" `Quick test_red_disjunction
+          ; test_case "red({⊥, p, p v q}) = {}" `Quick test_red_disjunction
           ; test_case "red({p, p ∧ q}) = { {p, q} }" `Quick test_red_conjunction
+          ; test_case "red({p, p ∧ q}) = { {p, q} }" `Quick test_red_false
           ; test_case "red({X(p R q)}) = { {X(p R q)} }" `Quick test_red_next
           ; test_case
               "red({p, p R q}) = { {p, q}, {X(p R q), q} }"

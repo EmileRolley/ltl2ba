@@ -15,6 +15,11 @@ build:
 test:
 	dune test -f
 
+#> test-cov     | Run unit tests instrumented with bisect-ppx
+test-cov:
+	dune runtest --instrument-with bisect_ppx --force
+	bisect-ppx-report summary
+
 #> doc          | Generates the HTML documentation via odoc
 doc:
 	dune build @doc

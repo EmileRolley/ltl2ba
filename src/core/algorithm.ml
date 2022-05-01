@@ -138,7 +138,6 @@ let red state =
            Printf.printf "\tMaximal unreduced formula: %s\n" (to_string alpha);
            let tmp_state = FormulaSet.remove alpha tmp_state in
            match alpha with
-           | Prop _ | Bool _ -> empty |> add FormulaSet.(add alpha tmp_state)
            | Bop (a1, Or, a2) ->
              (* If α = α1 ∨ α2, Y ⟶ Z ∪ {α1} and Y ⟶ Z ∪ {α2} *)
              empty

@@ -40,6 +40,10 @@ let test_parse_p_or_q_release_false () =
   al_assert_formula_eq "(p | q) R false" Ltl.(Prop "p" <|> Prop "q" <^> Bool false)
 ;;
 
+let test_parse_finally () =
+  al_assert_formula_eq "F(p | q)" Ltl.(finally (Prop "p" <|> Prop "q"))
+;;
+
 let test_parse_priority2 () =
   al_assert_formula_eq
     "(p U q) => (!q & p)"
@@ -62,6 +66,7 @@ let () =
       ; ( "LTL formulas"
         , [ test_case "φ := (p ∨ q) U ⊥" `Quick test_parse_p_or_q_until_false
           ; test_case "φ := (p ∨ q) R ⊥" `Quick test_parse_p_or_q_release_false
+          ; test_case "φ := F(p ∨ q)" `Quick test_parse_finally
           ; test_case "φ := p U q ⇒ ¬q ∧ p" `Quick test_parse_priority2
           ] )
       ]

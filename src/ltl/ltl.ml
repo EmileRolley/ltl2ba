@@ -90,9 +90,9 @@ let rec nnf = function
 (** Returns the equivalent function in its normalized form: only U and R binary temporal
     operators are allowed in the NNF. *)
 and normalize = function
-  | Uop (Finally, phi) -> Bool true <~> phi
-  | Uop (Globally, phi) -> Bool false <^> phi
-  | Bop (phi, Implies, psi) -> neg phi <|> psi
+  | Uop (Finally, phi) -> Bool true <~> normalize phi
+  | Uop (Globally, phi) -> Bool false <^> normalize phi
+  | Bop (phi, Implies, psi) -> neg @@ normalize phi <|> normalize psi
   | p -> p
 
 and get_dual = function

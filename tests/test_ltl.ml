@@ -62,6 +62,12 @@ let test_is_subformula_p_q () =
   al_assert "should not be true" (not @@ To_test.is_subformula phi psi)
 ;;
 
+let test_is_subformula_false_q () =
+  let phi = Bool false in
+  let psi = Prop "q" in
+  al_assert "should not be true" (not @@ To_test.is_subformula phi psi)
+;;
+
 let test_is_subformula_p_or_q_in_p_U_p_or_q () =
   let psi = Prop "p" <|> Prop "q" in
   let phi = Prop "r" <~> psi in
@@ -100,6 +106,7 @@ let () =
       ; ( "Is sub-formula"
         , [ test_case "p ∈ p" `Quick test_is_subformula_p_p
           ; test_case "p ∈ ¬p " `Quick test_is_subformula_p_not_p
+          ; test_case "p ∈ ¬p " `Quick test_is_subformula_p_not_p
           ; test_case
               "(p ∨ q) ∈ (r U (p ∨ q))"
               `Quick
@@ -107,6 +114,7 @@ let () =
           ; test_case "(p ∨ q) ∈ (q ∨ p)" `Quick test_is_subformula_p_or_q_in_q_or_p
           ; test_case "p ∈ (q U (p R q))" `Quick test_is_subformula_bug
           ; test_case "p ∉ q " `Quick test_is_subformula_p_q
+          ; test_case "⊥ ∉ q " `Quick test_is_subformula_false_q
           ] )
       ]
 ;;
