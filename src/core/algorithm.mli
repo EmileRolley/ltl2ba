@@ -12,6 +12,8 @@ type red_states =
             edge marked with α. *)
   }
 
+val empty_red_states : red_states
+
 (** {1 Functions} *)
 
 val red_states_to_string : red_states -> string

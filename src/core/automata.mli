@@ -21,13 +21,16 @@ type transition = state * FormulaSet.t * state
 
 module TransitionSet : Set.S with type elt = transition
 
-module TransBuchiAutomata : sig
-  type automata =
-    { states : StateSet.t (** States of the automata. *)
-    ; transitions : TransitionSet.t (** Transitions of the automata. *)
-    ; inits : StateSet.t (** Initial state. *)
-    ; acceptings : TransitionSet.t FormulaMap.t (** Accepting transitions. *)
+(** Imperative representation of a Büchi Automata on transitions. *)
+module TransBuchi : sig
+  type automata_t =
+    { mutable states : StateSet.t (** States of the automata. *)
+    ; mutable transitions : TransitionSet.t (** Transitions of the automata. *)
+    ; mutable inits : StateSet.t (** Initial state. *)
+    ; mutable acceptings : TransitionSet.t FormulaMap.t (** Accepting transitions. *)
     }
+
+  val automata : automata_t
 
   include
     Graph.Sig.I
@@ -42,9 +45,9 @@ module TransBuchiAutomata : sig
 end
 
 (** [Graph.Graphviz.Dot]*)
-module TransBuchiAutomataDotPrinter : sig
-  val fprint_graph : Stdlib.Format.formatter -> TransBuchiAutomata.t -> unit
-  val output_graph : Stdlib.out_channel -> TransBuchiAutomata.t -> unit
+module TransBuchiDotPrinter : sig
+  val fprint_graph : Stdlib.Format.formatter -> TransBuchi.t -> unit
+  val output_graph : Stdlib.out_channel -> TransBuchi.t -> unit
 end
 
 (** {1 Functions} *)

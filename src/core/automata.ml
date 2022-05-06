@@ -44,13 +44,21 @@ module TransitionSet = Set.Make (struct
   ;;
 end)
 
-module TransBuchiAutomata = struct
-  type automata =
-    { states : StateSet.t (** States of the automata. *)
-    ; transitions : TransitionSet.t (** Transitions of the automata. *)
-    ; inits : StateSet.t (** Initial state. *)
-    ; acceptings : TransitionSet.t FormulaMap.t (** Accepting transitions. *)
+module TransBuchi = struct
+  type automata_t =
+    { mutable states : StateSet.t
+    ; mutable transitions : TransitionSet.t
+    ; mutable inits : StateSet.t
+    ; mutable acceptings : TransitionSet.t FormulaMap.t
     }
+
+  let automata =
+    { states = StateSet.empty
+    ; transitions = TransitionSet.empty
+    ; inits = StateSet.empty
+    ; acceptings = FormulaMap.empty
+    }
+  ;;
 
   include
     Graph.Imperative.Digraph.ConcreteLabeled
@@ -90,10 +98,22 @@ module TransBuchiAutomata = struct
 
         let default = `Normal FormulaSet.empty
       end)
+
+  (** TODO: add_edges + print_automata*)
+  let add_vertex g v =
+    (* Adds to [TransBuchiAutomata.automata]. *)
+    (match v with
+    | `Init s ->
+      automata.inits <- StateSet.add s automata.inits;
+      automata.states <- StateSet.add s automata.states
+    | `Normal s -> automata.states <- StateSet.add s automata.states);
+    (* Adds to [TransBuchiAutomata.t] (function implemented by the [Graph] module. *)
+    add_vertex g v
+  ;;
 end
 
-module TransBuchiAutomataDotPrinter = Graph.Graphviz.Dot (struct
-  include TransBuchiAutomata
+module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
+  include TransBuchi
 
   (* TODO: calculates the sigma of phi instead of printing Σ. *)
   let edge_attributes = function

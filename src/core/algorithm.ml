@@ -6,6 +6,8 @@ type red_states =
   ; unmarked_by : StateSet.t FormulaMap.t
   }
 
+let empty_red_states = { all = StateSet.empty; unmarked_by = FormulaMap.empty }
+
 (* TODO: could factorized with [state_to_string]. *)
 let red_states_to_string (states : red_states) : string =
   Printf.sprintf
@@ -143,11 +145,11 @@ let red state =
             then { new_states with all = add state new_states.all }
             else reduce_state state)
           states_without_false
-          { all = empty; unmarked_by = FormulaMap.empty }
+          empty_red_states
       in
       reduce new_states)
   in
   if FormulaSet.is_empty state
-  then { all = empty; unmarked_by = FormulaMap.empty }
+  then empty_red_states
   else reduce { all = singleton state; unmarked_by = FormulaMap.empty }
 ;;
