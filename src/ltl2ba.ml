@@ -4,7 +4,7 @@ open Core
 open Ltl
 open Automata
 module Al = Algorithm
-module G = Automata.TransBuchi
+module Ba = Automata.TransBuchi
 module DotPrinter = Automata.TransBuchiDotPrinter
 
 let return_ok = 0
@@ -22,12 +22,12 @@ let parse (lexbuf : lexbuf) : formula option =
 
 (* TODO: to refactor in order to avoid using ref => using a record to keep track of
    unmanaged and managed states. *)
-let translate (phi : formula) : G.t =
+let translate (phi : formula) : Ba.t =
   let open Al in
-  let g = G.create () in
+  let g = Ba.create () in
   let init_state = FormulaSet.singleton phi in
   let already_managed_states = ref empty_red_states in
-  let get_vertex (s : state) : G.vertex =
+  let get_vertex (s : state) : Ba.vertex =
     if FormulaSet.equal init_state s then `Init s else `Normal s
   in
   let rec build (unmanaged_states : Al.red_states) : Al.red_states =
@@ -50,22 +50,68 @@ let translate (phi : formula) : G.t =
                  };
             if FormulaSet.is_empty s0
             then (
-              G.add_edge g (get_vertex s0) (get_vertex s0);
+              unmanaged_states.marked_by
+              |> FormulaMap.iter (fun phi states ->
+                     if not (StateSet.mem s0 states)
+                     then
+                       Ba.E.create
+                         (get_vertex s0)
+                         (`Acceptant (phi, Al.sigma s0))
+                         (get_vertex s0)
+                       |> Ba.add_edge_e g);
               empty_red_states)
             else (
+              (* Gets reduced states from [s0]. *)
               let red_states_from_s0 = Al.red s0 in
-              { red_states with
-                all =
-                  (fold
-                     (fun s new_red_states ->
-                       let label = Al.sigma s in
-                       let s = Al.next s in
-                       G.E.create (get_vertex s0) (`Normal label) (get_vertex s)
-                       |> G.add_edge_e g;
-                       { new_red_states with all = add s new_red_states.all })
-                     red_states_from_s0.all
-                     empty_red_states)
-                    .all
+              Cli.print_log
+                "\t Al.red [%s]: %s"
+                (state_to_string s0)
+                (red_states_to_string red_states_from_s0);
+              (* Adds corresponding edges and states in the automata. *)
+              if FormulaMap.is_empty red_states_from_s0.marked_by
+              then
+                red_states_from_s0.all
+                |> StateSet.iter (fun s ->
+                       Ba.E.create
+                         (get_vertex s0)
+                         (`Normal (Al.sigma s))
+                         (get_vertex (Al.next s))
+                       |> Ba.add_edge_e g)
+              else
+                red_states_from_s0.marked_by
+                |> FormulaMap.iter (fun phi states ->
+                       (* Adds acceptance transitions corresponding to F_[phi]. *)
+                       states
+                       |> StateSet.iter (fun s ->
+                              Ba.E.create
+                                (get_vertex s0)
+                                (`Normal (Al.sigma s))
+                                (get_vertex (Al.next s))
+                              |> Ba.add_edge_e g);
+                       StateSet.diff red_states_from_s0.all states
+                       |> StateSet.iter (fun s ->
+                              Ba.E.create
+                                (get_vertex s0)
+                                (`Acceptant (phi, Al.sigma s))
+                                (get_vertex (Al.next s))
+                              |> Ba.add_edge_e g));
+              { all =
+                  fold
+                    (fun s next_red_state -> add (next s) next_red_state)
+                    red_states_from_s0.all
+                    StateSet.empty
+                  |> union red_states.all
+              ; marked_by =
+                  FormulaMap.map
+                    (fun states ->
+                      fold
+                        (fun s next_red_state -> add (next s) next_red_state)
+                        states
+                        StateSet.empty)
+                    red_states_from_s0.marked_by
+                  |> FormulaMap.union
+                       (fun _ states states' -> Some (union states states'))
+                       red_states.marked_by
               }))
           unmanaged_states.all
           empty_red_states
@@ -75,7 +121,7 @@ let translate (phi : formula) : G.t =
       }
       |> build)
   in
-  ignore (build { all = StateSet.singleton init_state; unmarked_by = FormulaMap.empty });
+  ignore (build { all = StateSet.singleton init_state; marked_by = FormulaMap.empty });
   g
 ;;
 

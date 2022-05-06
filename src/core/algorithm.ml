@@ -3,19 +3,35 @@ open Automata
 
 type red_states =
   { all : StateSet.t
-  ; unmarked_by : StateSet.t FormulaMap.t
+  ; marked_by : StateSet.t FormulaMap.t
   }
 
-let empty_red_states = { all = StateSet.empty; unmarked_by = FormulaMap.empty }
+let empty_red_states = { all = StateSet.empty; marked_by = FormulaMap.empty }
+
+let states_to_string states =
+  StateSet.fold
+    (fun f s ->
+      s
+      ^ (if 0 <> String.length s then ", " else "")
+      ^ state_to_string ~surround:`Braces f)
+    states
+    ""
+;;
 
 (* TODO: could factorized with [state_to_string]. *)
 let red_states_to_string (states : red_states) : string =
   Printf.sprintf
-    "{ %s }"
-    (StateSet.fold
-       (fun f s ->
-         s ^ (if 0 <> String.length s then ", " else "") ^ state_to_string ~quote:true f)
-       states.all
+    "red_states = {\n\t  all: { %s };\n\t  marked_by: { %s }\n\t}"
+    (states_to_string states.all)
+    (FormulaMap.fold
+       (fun f states str ->
+         str
+         ^ (if 0 <> String.length str then ", " else "")
+         ^ "<"
+         ^ Ltl.to_string f
+         ^ "> = "
+         ^ states_to_string states)
+       states.marked_by
        "")
 ;;
 
@@ -98,12 +114,12 @@ let red state =
       (* If α = α1 ∨ α2, Y ⟶ Z ∪ {α1} and Y ⟶ Z ∪ {α2} *)
       { all =
           empty |> add FormulaSet.(add a1 tmp_state) |> add FormulaSet.(add a2 tmp_state)
-      ; unmarked_by = FormulaMap.empty
+      ; marked_by = FormulaMap.empty
       }
     | Bop (a1, And, a2) ->
       (* If α = α1 ∧ α2, Y ⟶ Z ∪ {α1, α2} *)
       { all = empty |> add FormulaSet.(tmp_state |> add a1 |> add a2)
-      ; unmarked_by = FormulaMap.empty
+      ; marked_by = FormulaMap.empty
       }
     | Bop (a1, Release, a2) ->
       (* If α = α1 R α2, Y ⟶ Z ∪ {α1, α2} and Y ⟶ Z ∪ {Xα, α2} *)
@@ -111,15 +127,13 @@ let red state =
           empty
           |> add FormulaSet.(tmp_state |> add a1 |> add a2)
           |> add FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a2)
-      ; unmarked_by = FormulaMap.empty
+      ; marked_by = FormulaMap.empty
       }
     | Bop (a1, Until, a2) ->
       (* If α = α1 U α2, Y ⟶ Z ∪ {α2} and Y ⟶α Z ∪ {Xα, α1} *)
-      { all =
-          empty
-          |> add FormulaSet.(add a2 tmp_state)
-          |> add FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1)
-      ; unmarked_by = FormulaMap.empty
+      let second_set = FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1) in
+      { all = empty |> add FormulaSet.(add a2 tmp_state) (* |> add second_set *)
+      ; marked_by = FormulaMap.singleton alpha (singleton second_set)
       }
     | _ ->
       failwith
@@ -151,5 +165,5 @@ let red state =
   in
   if FormulaSet.is_empty state
   then empty_red_states
-  else reduce { all = singleton state; unmarked_by = FormulaMap.empty }
+  else reduce { all = singleton state; marked_by = FormulaMap.empty }
 ;;

@@ -22,7 +22,6 @@ module To_test = struct
   let is_reduced : state -> bool = Algorithm.is_reduced
   let is_maximal : formula -> state -> bool = Algorithm.is_maximal
   let red : state -> red_states = Algorithm.red
-  (* let red_alpha : formula -> state -> states = Algorithm.red_alpha *)
 end
 
 let al_assert_formula_eq = al_assert_formula_eq_according_to_test To_test.nnf
@@ -290,18 +289,19 @@ let test_red_multiple_lvl () =
     StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)).all)
 ;;
 
-(* let test_red_alpha_empty () = *)
-(*   al_assert *)
-(*     "should be empty" *)
-(*     (StateSet.empty = To_test.red_alpha (Bool true) FormulaSet.empty) *)
-(* ;; *)
-(***)
-(* let test_red_alpha_ex1 () = *)
-(*   let phi = Prop "p" <~> Ltl.next (Prop "q") in *)
-(*   let expected = StateSet.singleton @@ FormulaSet.singleton (Ltl.next (Prop "q")) in *)
-(* al_assert "should be equal" (expected = To_test.red_alpha phi (FormulaSet.singleton
-   phi)) *)
-(* ;; *)
+let test_red_alpha_empty () =
+  al_assert "should be empty" (FormulaMap.empty = (To_test.red FormulaSet.empty).marked_by)
+;;
+
+let test_red_alpha_ex1 () =
+  let phi = Prop "p" <~> Ltl.next (Prop "q") in
+  let expected_marked_by_phi =
+    StateSet.singleton @@ FormulaSet.of_list [ Ltl.next phi; Prop "p" ]
+  in
+  let expected_map = FormulaMap.singleton phi expected_marked_by_phi in
+  let actual = To_test.red (FormulaSet.singleton phi) in
+  al_assert "should be equal" (expected_map = actual.marked_by)
+;;
 
 let () =
   Al.run
@@ -378,9 +378,9 @@ let () =
               `Quick
               test_red_multiple_lvl
           ] )
-        (* ; ( "Calculate Red_α(Z)" *)
-        (*   , [ test_case "red_alpha(⊤, {}) = {}" `Quick test_red_alpha_empty *)
-        (*     ; test_case "red_alpha(p U Xq, {p U Xq}) = { {Xq} }" `Quick test_red_alpha_ex1 *)
-        (*     ] ) *)
+      ; ( "Calculate Red_α(Z)"
+        , [ test_case "red_alpha({}) = {}" `Quick test_red_alpha_empty
+          ; test_case "red_alpha({p U Xq}) = { {X(p U Xq), p} }" `Quick test_red_alpha_ex1
+          ] )
       ]
 ;;

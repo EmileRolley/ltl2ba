@@ -18,12 +18,15 @@ end)
 
 type state = FormulaSet.t
 
-let state_to_string ?(quote = false) ?(empty = "∅") (state : state) : string =
+let state_to_string ?(surround = `Empty) ?(empty = "∅") (state : state) : string =
   if FormulaSet.is_empty state
   then empty
   else
     Printf.sprintf
-      (if quote then "\" %s \"" else "%s")
+      (match surround with
+      | `Quotes -> "\" %s \""
+      | `Braces -> "{ %s }"
+      | `Empty -> "%s")
       (FormulaSet.fold
          (fun f s -> s ^ (if 0 <> String.length s then ", " else "") ^ Ltl.to_string f)
          state
@@ -115,15 +118,35 @@ end
 module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
   include TransBuchi
 
+  let colors =
+    [ 0x264653 (* #264653 *)
+    ; 0x2a9d8f (* #2a9d8f *)
+    ; 0xe9c46a (* #e9c46a *)
+    ; 0xf4a261 (* #f4a261 *)
+    ; 0xe76f51 (* #e76f51 *)
+    ]
+  ;;
+
+  let pick_color (phi : Ltl.formula) : int =
+    Hashtbl.hash phi mod List.length colors |> List.nth colors
+  ;;
+
+  let default_edge_attributes _ = [ `Arrowsize 0.45 ]
+
   (* TODO: calculates the sigma of phi instead of printing Σ. *)
   let edge_attributes = function
     | _, `Normal formulas, _ ->
-      [ `Arrowsize 0.45; `Label (state_to_string ~empty:"Σ" formulas) ]
-    | _, `Acceptant (_alpha, formulas), _ ->
-      [ `Arrowsize 0.45; `Label (state_to_string ~empty:"Σ" formulas) ]
+      default_edge_attributes () @ [ `Label (state_to_string ~empty:"Σ" formulas) ]
+    | _, `Acceptant (alpha, formulas), _ ->
+      default_edge_attributes ()
+      @ [ `Style `Dashed
+        ; `Label (state_to_string ~empty:"Σ" formulas)
+        ; `Headlabel (" " ^ Ltl.to_string alpha ^ " ")
+        ; `Labelfontcolor (pick_color alpha)
+        ; `Labelfontsize 8
+        ]
   ;;
 
-  let default_edge_attributes _ = []
   let get_subgraph _ = None
 
   let vertex_attributes = function
@@ -132,7 +155,7 @@ module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
   ;;
 
   let vertex_name = function
-    | `Init s | `Normal s -> state_to_string ~quote:true s
+    | `Init s | `Normal s -> state_to_string ~surround:`Quotes s
   ;;
 
   let default_vertex_attributes _ = []

@@ -7,15 +7,16 @@ open Automata
     function. *)
 type red_states =
   { all : StateSet.t (** Set of reachable reduced states. *)
-  ; unmarked_by : StateSet.t FormulaMap.t
-        (** Map of a formula α to the set of of reachable reduced states without using an
-            edge marked with α. *)
+  ; marked_by : StateSet.t FormulaMap.t
+        (** TODO: marked_by Map a formula α to the set of only reachable reduced states by
+            using edges marked with α. *)
   }
 
 val empty_red_states : red_states
 
 (** {1 Functions} *)
 
+val states_to_string : StateSet.t -> string
 val red_states_to_string : red_states -> string
 
 (** [next state] returns [{α | Xα ∈ state}] *)

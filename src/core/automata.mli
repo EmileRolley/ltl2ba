@@ -52,9 +52,15 @@ end
 
 (** {1 Functions} *)
 
-(** [state_to_string ?quote ?empty state] returns the string representation of the state.
+(** [state_to_string ?surround ?empty state] returns the string representation of the
+    state.
 
     [~empty] is the string to represent an empty state (default "∅").
 
-    [~quote] if set to true will quote the string representation (default "false"). *)
-val state_to_string : ?quote:bool -> ?empty:string -> state -> string
+    [~surround] specify by whitch character the string representation is surrounded
+    (default [`Empty]). *)
+val state_to_string
+  :  ?surround:[ `Quotes | `Braces | `Empty ]
+  -> ?empty:string
+  -> state
+  -> string
