@@ -1,28 +1,18 @@
 (** This module contains the implementation of core translating algorithm. *)
+
 open Ltl
+open Automata
 
-(** A set of [Ltl.formula]. *)
-module FormulaSet : Set.S with type elt = Ltl.formula
+(** Intermediate representation allowing to store reduced [states] computed by the [red]
+    function. *)
+type red_states =
+  { all : StateSet.t (** Set of reachable reduced states. *)
+  ; unmarked_by : StateSet.t FormulaMap.t
+        (** Map of a formula α to the set of of reachable reduced states without using an
+            edge marked with α. *)
+  }
 
-(** Module used to describes nodes and edges for the transition graph. *)
-module Label : sig
-  type t = FormulaSet.t
-
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-  val hash : t -> int
-  val default : t
-end
-
-(** Automata represented a directed graph. *)
-module TransitionGraph : Graph.Sig.I with type V.t = Label.t and type E.label = Label.t
-
-type state = FormulaSet.t
-
-(** A set of [state]. *)
-module StateSet : Set.S with type elt = state
-
-type states = StateSet.t
+(** {1 Functions} *)
 
 (** [state_to_string ?quote ?empty state] returns the string representation of the state.
 
@@ -31,7 +21,7 @@ type states = StateSet.t
     [~quote] if set to true will quote the string representation (default "false"). *)
 val state_to_string : ?quote:bool -> ?empty:string -> state -> string
 
-val states_to_string : states -> string
+val red_states_to_string : red_states -> string
 
 (** [next state] returns [{α | Xα ∈ state}] *)
 val next : state -> state
@@ -47,4 +37,4 @@ val is_reduced : state -> bool
 val is_maximal : formula -> state -> bool
 
 (** [red state] returns [Red(Y) = {Z reduced | Y ⟶{^*} Z} ] *)
-val red : state -> states
+val red : state -> red_states

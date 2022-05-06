@@ -1,6 +1,7 @@
 open Parsing
 open Core
 open Ltl
+open Automata
 open Algorithm
 open Test_utils
 module Al = Alcotest
@@ -20,7 +21,8 @@ module To_test = struct
   let sigma : state -> FormulaSet.t = Algorithm.sigma
   let is_reduced : state -> bool = Algorithm.is_reduced
   let is_maximal : formula -> state -> bool = Algorithm.is_maximal
-  let red : state -> states = Algorithm.red
+  let red : state -> red_states = Algorithm.red
+  (* let red_alpha : formula -> state -> states = Algorithm.red_alpha *)
 end
 
 let al_assert_formula_eq = al_assert_formula_eq_according_to_test To_test.nnf
@@ -203,13 +205,13 @@ let test_sigma_p_and_neg_q () =
 ;;
 
 let test_red_empty () =
-  al_assert "should be empty" (StateSet.empty = To_test.red FormulaSet.empty)
+  al_assert "should be empty" (StateSet.empty = (To_test.red FormulaSet.empty).all)
 ;;
 
 let test_red_already_reduced () =
   let state = FormulaSet.of_list [ Prop "p"; neg (Prop "q"); Ltl.next (Prop "p") ] in
   let expected = StateSet.singleton state in
-  al_assert "should be equals" (expected = To_test.red state)
+  al_assert "should be equals" (expected = (To_test.red state).all)
 ;;
 
 let test_red_disjunction () =
@@ -218,18 +220,18 @@ let test_red_disjunction () =
     StateSet.of_list
       [ FormulaSet.singleton (Prop "p"); FormulaSet.of_list [ Prop "p"; Prop "q" ] ]
   in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_red_conjunction () =
   let state = FormulaSet.of_list [ Prop "p"; Prop "p" <&> Prop "q" ] in
   let expected = StateSet.of_list [ FormulaSet.of_list [ Prop "p"; Prop "q" ] ] in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_red_false () =
   let state = FormulaSet.of_list [ Bool false; Prop "p" <&> Prop "q" ] in
-  al_assert "should be equals" StateSet.(equal empty (To_test.red state))
+  al_assert "should be equals" StateSet.(equal empty (To_test.red state).all)
 ;;
 
 let test_red_next () =
@@ -238,7 +240,7 @@ let test_red_next () =
       Ltl.[ next (Bool false <^> (neg (Prop "p") <|> next (Bool true <~> Prop "q"))) ]
   in
   let expected = StateSet.of_list [ state ] in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_is_reduced_bug () =
@@ -258,7 +260,7 @@ let test_red_release () =
         ; of_list [ Prop "p"; Ltl.next (Prop "p" <^> Prop "q"); Prop "q" ]
         ]
   in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_red_until () =
@@ -269,7 +271,7 @@ let test_red_until () =
   in
   al_assert
     "should be equals"
-    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)))
+    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)).all)
 ;;
 
 (** Red({p U (p v Xq)}) = { {p}, {Xq}, {X(p U (p v Xq)), p} }*)
@@ -285,8 +287,21 @@ let test_red_multiple_lvl () =
   in
   al_assert
     "should be equals"
-    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)))
+    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)).all)
 ;;
+
+(* let test_red_alpha_empty () = *)
+(*   al_assert *)
+(*     "should be empty" *)
+(*     (StateSet.empty = To_test.red_alpha (Bool true) FormulaSet.empty) *)
+(* ;; *)
+(***)
+(* let test_red_alpha_ex1 () = *)
+(*   let phi = Prop "p" <~> Ltl.next (Prop "q") in *)
+(*   let expected = StateSet.singleton @@ FormulaSet.singleton (Ltl.next (Prop "q")) in *)
+(* al_assert "should be equal" (expected = To_test.red_alpha phi (FormulaSet.singleton
+   phi)) *)
+(* ;; *)
 
 let () =
   Al.run
@@ -363,5 +378,9 @@ let () =
               `Quick
               test_red_multiple_lvl
           ] )
+        (* ; ( "Calculate Red_α(Z)" *)
+        (*   , [ test_case "red_alpha(⊤, {}) = {}" `Quick test_red_alpha_empty *)
+        (*     ; test_case "red_alpha(p U Xq, {p U Xq}) = { {Xq} }" `Quick test_red_alpha_ex1 *)
+        (*     ] ) *)
       ]
 ;;
