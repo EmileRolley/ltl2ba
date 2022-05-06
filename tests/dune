@@ -1,5 +1,5 @@
 (tests
-  (names test_ltl test_ltl_parser test_ltl2ba)
+  (names test_ltl test_ltl_parser test_algorithm)
   (libraries alcotest parsing core)
   (package ltl2ba))
 

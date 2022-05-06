@@ -1,4 +1,4 @@
-(** This libary contains the implementation of LTL formulas. *)
+(** This module contains the implementation of LTL formulas. *)
 
 (** LTL formula definition. *)
 type formula =

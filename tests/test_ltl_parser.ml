@@ -1,4 +1,5 @@
 open Parsing
+open Core
 open Ltl
 open Test_utils
 module Al = Alcotest

@@ -1,7 +1,7 @@
 open Lexing
 open Parsing
-open Ltl
 open Core
+open Ltl
 module Al = Algorithm
 module G = Algorithm.TransitionGraph
 
@@ -73,6 +73,7 @@ let translate (phi : formula) : Al.TransitionGraph.t =
       |> filter (fun s -> not (mem s unmanaged_states))
       |> build)
   in
+  G.add_vertex g (FormulaSet.singleton phi);
   ignore (build (StateSet.singleton (FormulaSet.singleton phi)));
   g
 ;;

@@ -148,12 +148,16 @@ let red state =
   (* Reduces the state in [states] until all states are reduced, meaning that [states]
      contains all the leafs of the temporary oriented graph built from [state] *)
   let rec reduce (states : states) : states =
+    let contains_phi_and_not_phi state : bool =
+      FormulaSet.exists (fun phi -> FormulaSet.mem (neg phi) state) state
+    in
     if for_all is_reduced states
     then states
     else (
       let new_states =
         states
-        |> StateSet.filter (fun state -> not @@ FormulaSet.mem (Bool false) state)
+        |> StateSet.filter (fun state ->
+               not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
         |> fun states_without_false ->
         StateSet.fold
           (fun state new_states ->

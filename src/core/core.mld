@@ -1,0 +1,10 @@
+{0 The [Core] module}
+
+This module contains the implementation of the different functions used in the
+core translating algorithm, and the data representation of LTL formulas.
+
+{1 List of modules}
+
+- {{: Core/Ltl/index.html} [Ltl]} - The data reprensentation of LTL formulas
+- {{: Core/Algorithm/index.html} [Algorithm]} - The main functions of the algorithm
+

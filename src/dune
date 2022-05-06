@@ -1,7 +1,7 @@
 (executable
- (name main)
+ (name ltl2ba)
  (public_name ltl2ba)
- (libraries parsing ltl core cmdliner ANSITerminal)
+ (libraries parsing core cmdliner ANSITerminal)
  (package ltl2ba))
 
 (documentation

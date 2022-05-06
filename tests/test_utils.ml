@@ -1,4 +1,4 @@
-open Ltl
+open Core.Ltl
 module Al = Alcotest
 
 let al_assert (msg : string) : bool -> unit = Al.(check bool) msg true

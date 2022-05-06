@@ -1,6 +1,10 @@
 (library
  (name core)
  (public_name ltl2ba.core)
- (libraries ltl ocamlgraph)
+ (libraries ocamlgraph)
  (modules (:standard))
  (instrumentation (backend bisect_ppx)))
+
+(documentation
+ (package ltl2ba)
+ (mld_files core))

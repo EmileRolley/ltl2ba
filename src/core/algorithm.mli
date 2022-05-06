@@ -1,4 +1,4 @@
-(** This libary contains the implementation of core translating algorithm. *)
+(** This module contains the implementation of core translating algorithm. *)
 open Ltl
 
 (** A set of [Ltl.formula]. *)

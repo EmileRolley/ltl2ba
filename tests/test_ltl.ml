@@ -1,4 +1,5 @@
 open Test_utils
+open Core
 open Ltl
 module Al = Alcotest
 

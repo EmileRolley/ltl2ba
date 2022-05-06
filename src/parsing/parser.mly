@@ -1,5 +1,5 @@
 %{
-  open Ltl
+  open Core.Ltl
 %}
 
 %token EOF
@@ -13,7 +13,7 @@
 %left UNTIL RELEASE
 %left NOT NEXT FINALLY GLOBALLY
 
-%type <Ltl.formula> formula
+%type <formula> formula
 
 %start formula
 

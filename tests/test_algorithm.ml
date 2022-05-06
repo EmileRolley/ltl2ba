@@ -1,6 +1,6 @@
 open Parsing
-open Ltl
 open Core
+open Ltl
 open Algorithm
 open Test_utils
 module Al = Alcotest

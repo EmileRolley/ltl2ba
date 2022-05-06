@@ -11,8 +11,7 @@ an equivalent {!section-genbuch}.
 {1 List of modules}
 
 - {{: parser.html} [Parser]} - The LTL parser
-- {{: Ltl/index.html} [Ltl]} - The LTL formula representation
-- {{: Core/index.html} [Core]} - The implementation of the algorithm
+- {{: core.html} [Core]} - The implementation of the algorithm
 
 {1:algo The algorithm}
 
@@ -32,7 +31,7 @@ The first phase consists in putting φ in {i negation normal form} (NNF), where:
 {3 The negation normal form}
 
 To calculate {i nnf(φ)}, following rules can be applied recursively -- see
-{!val: Ltl.nnf}:
+{!val: Core.Ltl.nnf}:
 
 - nnf(ρ) = ρ
 - nnf(¬¬φ) = nnf(φ)
