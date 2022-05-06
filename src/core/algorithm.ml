@@ -6,18 +6,6 @@ type red_states =
   ; unmarked_by : StateSet.t FormulaMap.t
   }
 
-let state_to_string ?(quote = false) ?(empty = "∅") (state : state) : string =
-  if FormulaSet.is_empty state
-  then empty
-  else
-    Printf.sprintf
-      (if quote then "\" %s \"" else "%s")
-      (FormulaSet.fold
-         (fun f s -> s ^ (if 0 <> String.length s then ", " else "") ^ to_string f)
-         state
-         "")
-;;
-
 (* TODO: could factorized with [state_to_string]. *)
 let red_states_to_string (states : red_states) : string =
   Printf.sprintf

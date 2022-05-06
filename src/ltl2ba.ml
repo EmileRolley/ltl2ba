@@ -4,23 +4,8 @@ open Core
 open Ltl
 open Automata
 module Al = Algorithm
-module G = Automata.TransitionGraph
-
-module Dot = Graph.Graphviz.Dot (struct
-  include G
-
-  (* TODO: calculates the sigma of phi instead of printing Σ. *)
-  let edge_attributes (e : E.t) =
-    [ `Arrowsize 0.45; `Label (E.label e |> Al.state_to_string ~empty:"Σ") ]
-  ;;
-
-  let default_edge_attributes _ = []
-  let get_subgraph _ = None
-  let vertex_attributes _ = [ `Shape `Ellipse ]
-  let vertex_name v = Al.state_to_string ~quote:true v
-  let default_vertex_attributes _ = []
-  let graph_attributes _ = []
-end)
+module G = Automata.TransBuchiAutomata
+module DotPrinter = Automata.TransBuchiAutomataDotPrinter
 
 let return_ok = 0
 let return_err = 1
@@ -83,7 +68,7 @@ let translate (phi : formula) : G.t =
   (*     } *)
   (*     |> build) *)
   (* in *)
-  G.add_vertex g (FormulaSet.singleton phi);
+  G.add_vertex g (`Init (FormulaSet.singleton phi));
   (* ignore *)
   (*   (build *)
   (*      { all = StateSet.singleton (FormulaSet.singleton phi) *)
@@ -113,7 +98,7 @@ let driver
     |> Option.fold ~none:() ~some:(fun path ->
            Cli.print_log "Printing automata in '%s'" path;
            let file = open_out path in
-           Dot.output_graph file automata);
+           DotPrinter.output_graph file automata);
     return_ok
   | None -> return_err
 ;;

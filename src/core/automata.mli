@@ -16,14 +16,42 @@ type state = FormulaSet.t
 module StateSet : Set.S with type elt = state
 
 (** Module used to describes nodes and edges for the transition graph. *)
-module Label : sig
-  type t = FormulaSet.t
 
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-  val hash : t -> int
-  val default : t
+type transition = state * FormulaSet.t * state
+
+module TransitionSet : Set.S with type elt = transition
+
+module TransBuchiAutomata : sig
+  type automata =
+    { states : StateSet.t (** States of the automata. *)
+    ; transitions : TransitionSet.t (** Transitions of the automata. *)
+    ; inits : StateSet.t (** Initial state. *)
+    ; acceptings : TransitionSet.t FormulaMap.t (** Accepting transitions. *)
+    }
+
+  include
+    Graph.Sig.I
+      with type V.t =
+        [ `Init of state
+        | `Normal of state
+        ]
+       and type E.label =
+        [ `Normal of FormulaSet.t
+        | `Acceptant of Ltl.formula * FormulaSet.t
+        ]
 end
 
-(** Automata represented a directed graph. *)
-module TransitionGraph : Graph.Sig.I with type V.t = Label.t and type E.label = Label.t
+(** [Graph.Graphviz.Dot]*)
+module TransBuchiAutomataDotPrinter : sig
+  val fprint_graph : Stdlib.Format.formatter -> TransBuchiAutomata.t -> unit
+  val output_graph : Stdlib.out_channel -> TransBuchiAutomata.t -> unit
+end
+
+(** {1 Functions} *)
+
+(** [state_to_string ?quote ?empty state] returns the string representation of the state.
+
+    [~empty] is the string to represent an empty state (default "∅").
+
+    [~quote] if set to true will quote the string representation (default "false"). *)
+val state_to_string : ?quote:bool -> ?empty:string -> state -> string

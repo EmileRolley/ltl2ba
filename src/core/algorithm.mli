@@ -14,13 +14,6 @@ type red_states =
 
 (** {1 Functions} *)
 
-(** [state_to_string ?quote ?empty state] returns the string representation of the state.
-
-    [~empty] is the string to represent an empty state (default "∅").
-
-    [~quote] if set to true will quote the string representation (default "false"). *)
-val state_to_string : ?quote:bool -> ?empty:string -> state -> string
-
 val red_states_to_string : red_states -> string
 
 (** [next state] returns [{α | Xα ∈ state}] *)
