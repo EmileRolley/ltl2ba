@@ -59,10 +59,30 @@ let translate (phi : formula) : Ba.t =
                          (`Acceptant (phi, Al.sigma s0))
                          (get_vertex s0)
                        |> Ba.add_edge_e g);
-              empty_red_states)
+              { empty_red_states with marked_by = unmanaged_states.marked_by })
             else (
               (* Gets reduced states from [s0]. *)
-              let red_states_from_s0 = Al.red s0 in
+              (* TODO: - Each marked states should be reduced before continuing*)
+              let red_states_from_s0 =
+                let red_s0 = Al.red s0 in
+                { red_s0 with
+                  marked_by =
+                    formula_map_on_sets_union red_s0.marked_by red_states.marked_by
+                    (* let red_s0 = Al.red s0 in *)
+                    (* { red_s0 with *)
+                    (*   marked_by = *)
+                    (*     FormulaMap.fold *)
+                    (*       (fun _ states red_marked_states -> *)
+                    (*         StateSet.fold *)
+                    (*           (fun s states -> *)
+                    (*             formula_map_on_sets_union states (Al.red s).marked_by) *)
+                    (*           states *)
+                    (*           red_marked_states) *)
+                    (*       red_states.marked_by *)
+                    (*       FormulaMap.empty *)
+                    (* } *)
+                }
+              in
               Cli.print_log
                 "\t Al.red [%s]: %s"
                 (state_to_string s0)
@@ -82,7 +102,12 @@ let translate (phi : formula) : Ba.t =
                 |> FormulaMap.iter (fun phi states ->
                        (* Adds acceptance transitions corresponding to F_[phi]. *)
                        states
+                       |> StateSet.filter is_reduced
                        |> StateSet.iter (fun s ->
+                              Cli.print_log
+                                "\t\t\tAdding transition (%s, %s)"
+                                (state_to_string s0)
+                                (state_to_string (Al.next s));
                               Ba.E.create
                                 (get_vertex s0)
                                 (`Normal (Al.sigma s))
@@ -90,6 +115,10 @@ let translate (phi : formula) : Ba.t =
                               |> Ba.add_edge_e g);
                        StateSet.diff red_states_from_s0.all states
                        |> StateSet.iter (fun s ->
+                              Cli.print_log
+                                "\t\t\tAdding acceptance transition (%s, %s)"
+                                (state_to_string s0)
+                                (state_to_string (Al.next s));
                               Ba.E.create
                                 (get_vertex s0)
                                 (`Acceptant (phi, Al.sigma s))
@@ -108,14 +137,21 @@ let translate (phi : formula) : Ba.t =
                         (fun s next_red_state -> add (next s) next_red_state)
                         states
                         StateSet.empty)
-                    red_states_from_s0.marked_by
-                  |> FormulaMap.union
-                       (fun _ states states' -> Some (union states states'))
-                       red_states.marked_by
+                    (FormulaMap.fold
+                       (fun _ states red_marked_states ->
+                         StateSet.fold
+                           (fun s states ->
+                             formula_map_on_sets_union states (Al.red s).marked_by)
+                           states
+                           red_marked_states)
+                       red_states_from_s0.marked_by
+                       red_states_from_s0.marked_by)
+                  |> formula_map_on_sets_union red_states.marked_by
               }))
           unmanaged_states.all
-          empty_red_states
+          { empty_red_states with marked_by = unmanaged_states.marked_by }
       in
+      Cli.print_log "\tNew red states: %s" (Al.red_states_to_string new_red_states);
       { new_red_states with
         all = filter (fun s -> not (mem s unmanaged_states.all)) new_red_states.all
       }
@@ -129,7 +165,7 @@ let driver
     (formula : string) (dot_path : string option) (verbose : bool) (no_color : bool)
     : int
   =
-  print_endline "--- ltl2ba v0.1.0 ---";
+  print_endline "--- ltl2ba v0.2.0 ---";
   Cli.verbose_flag := verbose;
   Cli.style_flag := not no_color;
   (* TODO: manage multiple formulas/input files *)

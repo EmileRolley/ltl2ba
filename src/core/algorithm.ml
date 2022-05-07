@@ -132,26 +132,29 @@ let red state =
     | Bop (a1, Until, a2) ->
       (* If α = α1 U α2, Y ⟶ Z ∪ {α2} and Y ⟶α Z ∪ {Xα, α1} *)
       let second_set = FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1) in
-      { all = empty |> add FormulaSet.(add a2 tmp_state) (* |> add second_set *)
+      { all = empty |> add FormulaSet.(add a2 tmp_state) |> add second_set
       ; marked_by = FormulaMap.singleton alpha (singleton second_set)
       }
     | _ ->
       failwith
         " should never be reached, as [alpha] is the maximal not reduced subset of [state]\n"
   in
-  (* Reduces the state in [states] until all states are reduced, meaning that [states]
-     contains all the leafs of the temporary oriented graph built from [state] *)
-  let rec reduce (states : red_states) : red_states =
+  let remove_dead_states : StateSet.t -> StateSet.t =
     let contains_phi_and_not_phi state : bool =
       FormulaSet.exists (fun phi -> FormulaSet.mem (neg phi) state) state
     in
-    if for_all is_reduced states.all
-    then states
+    StateSet.filter (fun state ->
+        not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
+  in
+  (* Reduces the state in [states] until all states are reduced, meaning that [states]
+     contains all the leafs of the temporary oriented graph built from [state] *)
+  let rec reduce (red_states : red_states) : red_states =
+    if for_all is_reduced red_states.all
+    then red_states
     else (
       let new_states =
-        states.all
-        |> StateSet.filter (fun state ->
-               not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
+        red_states.all
+        |> remove_dead_states
         |> fun states_without_false ->
         StateSet.fold
           (fun state new_states ->
@@ -160,6 +163,28 @@ let red state =
             else reduce_state state)
           states_without_false
           empty_red_states
+      in
+      (* FIXME: both reducing should be done in the same time -> issue when multiple
+         reducing in a row. *)
+      let new_states =
+        FormulaMap.fold
+          (fun phi states new_states ->
+            states
+            |> remove_dead_states
+            |> fun states_without_false ->
+            StateSet.fold
+              (fun state new_states ->
+                if is_reduced state
+                then
+                  { new_states with
+                    marked_by =
+                      FormulaMap.add phi (StateSet.singleton state) new_states.marked_by
+                  }
+                else reduce_state state)
+              states_without_false
+              new_states)
+          red_states.marked_by
+          new_states
       in
       reduce new_states)
   in
