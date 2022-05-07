@@ -20,69 +20,69 @@ let parse (lexbuf : lexbuf) : formula option =
     None
 ;;
 
-(* TODO: to refactor in order to avoid using ref => using a record to keep track of
-   unmanaged and managed states. *)
+type translating_context =
+  { (* Keeps track of all managed states to know when to stop iterate. *)
+    mutable already_managed_states : StateSet.t
+  ; (* Keeps track of all formulas used to marked edges in the intermediate graph
+       representation. They represent the acceptance conditions. *)
+    mutable marking_formulas : FormulaSet.t
+  }
+
+(** TODO:
+
+    - [ ] Adds comment
+    - [ ] Factorize
+    - [ ] Move to Algorithm ? *)
 let translate (phi : formula) : Ba.t =
   let open Al in
   let g = Ba.create () in
   let init_state = FormulaSet.singleton phi in
-  let already_managed_states = ref empty_red_states in
+  let ctx =
+    { already_managed_states = StateSet.empty; marking_formulas = FormulaSet.empty }
+  in
+  (* let already_managed_states = ref empty_red_states in *)
   let get_vertex (s : state) : Ba.vertex =
     if FormulaSet.equal init_state s then `Init s else `Normal s
   in
-  let rec build (unmanaged_states : Al.red_states) : Al.red_states =
-    Cli.print_log "\tUnmanaged states1: %s" (Al.red_states_to_string unmanaged_states);
+  let rec build (unmanaged_red_states : Al.red_states) : Al.red_states =
+    Cli.print_log "\tUnmanaged states1: %s" (Al.red_states_to_string unmanaged_red_states);
     Cli.print_log
       "\tAlready managed states: %s"
-      (Al.red_states_to_string !already_managed_states);
+      (Al.states_to_string ctx.already_managed_states);
     let open StateSet in
-    if subset unmanaged_states.all !already_managed_states.all
+    if subset unmanaged_red_states.all ctx.already_managed_states
     then empty_red_states
     else (
-      Cli.print_log "\tUnmanaged state: %s" (Al.red_states_to_string unmanaged_states);
+      Cli.print_log "\tUnmanaged state: %s" (Al.red_states_to_string unmanaged_red_states);
       let new_red_states =
         StateSet.fold
           (fun s0 red_states ->
             Cli.print_log "\t\tY = {%s}" (state_to_string s0);
-            already_managed_states
-              := { !already_managed_states with
-                   all = StateSet.add s0 !already_managed_states.all
-                 };
+            ctx.already_managed_states <- StateSet.add s0 ctx.already_managed_states;
             if FormulaSet.is_empty s0
             then (
-              unmanaged_states.marked_by
-              |> FormulaMap.iter (fun phi states ->
-                     if not (StateSet.mem s0 states)
-                     then
-                       Ba.E.create
-                         (get_vertex s0)
-                         (`Acceptant (phi, Al.sigma s0))
-                         (get_vertex s0)
-                       |> Ba.add_edge_e g);
-              { empty_red_states with marked_by = unmanaged_states.marked_by })
+              (* Adds all acceptant conditions for {} -> {}. *)
+              let acceptant_formulas =
+                unmanaged_red_states.marked_by
+                |> FormulaMap.to_seq
+                |> List.of_seq
+                |> List.map (fun (phi, _) -> phi)
+                |> List.append (FormulaSet.elements ctx.marking_formulas)
+                |> List.sort_uniq Ltl.compare
+              in
+              Cli.print_log
+                "\t\t\tAdding acceptance transition: %s -> %s"
+                (state_to_string s0)
+                (state_to_string s0);
+              Ba.E.create
+                (get_vertex s0)
+                (`Acceptant (acceptant_formulas, Al.sigma s0))
+                (get_vertex s0)
+              |> Ba.add_edge_e g;
+              empty_red_states)
             else (
               (* Gets reduced states from [s0]. *)
-              (* TODO: - Each marked states should be reduced before continuing*)
-              let red_states_from_s0 =
-                let red_s0 = Al.red s0 in
-                { red_s0 with
-                  marked_by =
-                    formula_map_on_sets_union red_s0.marked_by red_states.marked_by
-                    (* let red_s0 = Al.red s0 in *)
-                    (* { red_s0 with *)
-                    (*   marked_by = *)
-                    (*     FormulaMap.fold *)
-                    (*       (fun _ states red_marked_states -> *)
-                    (*         StateSet.fold *)
-                    (*           (fun s states -> *)
-                    (*             formula_map_on_sets_union states (Al.red s).marked_by) *)
-                    (*           states *)
-                    (*           red_marked_states) *)
-                    (*       red_states.marked_by *)
-                    (*       FormulaMap.empty *)
-                    (* } *)
-                }
-              in
+              let red_states_from_s0 = Al.red s0 in
               Cli.print_log
                 "\t Al.red [%s]: %s"
                 (state_to_string s0)
@@ -90,24 +90,34 @@ let translate (phi : formula) : Ba.t =
               (* Adds corresponding edges and states in the automata. *)
               if FormulaMap.is_empty red_states_from_s0.marked_by
               then
+                (* All transitions are acceptant because there are no marked edges. *)
                 red_states_from_s0.all
                 |> StateSet.iter (fun s ->
-                       Ba.E.create
-                         (get_vertex s0)
-                         (`Normal (Al.sigma s))
-                         (get_vertex (Al.next s))
+                       Cli.print_log
+                         "\t\t\t[3] Adding acceptance transition: %s -> %s"
+                         (state_to_string s0)
+                         (state_to_string (Al.next s));
+                       let edge =
+                         if FormulaSet.is_empty ctx.marking_formulas
+                         then `Normal (Al.sigma s)
+                         else
+                           `Acceptant
+                             (FormulaSet.elements ctx.marking_formulas, Al.sigma s)
+                       in
+                       Ba.E.create (get_vertex s0) edge (get_vertex (Al.next s))
                        |> Ba.add_edge_e g)
               else
+                (* TODO: merge common acceptant transitions. *)
                 red_states_from_s0.marked_by
                 |> FormulaMap.iter (fun phi states ->
                        (* Adds acceptance transitions corresponding to F_[phi]. *)
                        states
-                       |> StateSet.filter is_reduced
+                       (* |> StateSet.filter is_reduced *)
                        |> StateSet.iter (fun s ->
                               Cli.print_log
-                                "\t\t\tAdding transition (%s, %s)"
+                                "\t\t\t[4] Adding transition: %s -> %s"
                                 (state_to_string s0)
-                                (state_to_string (Al.next s));
+                                (state_to_string s);
                               Ba.E.create
                                 (get_vertex s0)
                                 (`Normal (Al.sigma s))
@@ -116,12 +126,12 @@ let translate (phi : formula) : Ba.t =
                        StateSet.diff red_states_from_s0.all states
                        |> StateSet.iter (fun s ->
                               Cli.print_log
-                                "\t\t\tAdding acceptance transition (%s, %s)"
+                                "\t\t\t[5] Adding acceptance transition: %s -> %s"
                                 (state_to_string s0)
-                                (state_to_string (Al.next s));
+                                (state_to_string s);
                               Ba.E.create
                                 (get_vertex s0)
-                                (`Acceptant (phi, Al.sigma s))
+                                (`Acceptant ([ phi ], Al.sigma s))
                                 (get_vertex (Al.next s))
                               |> Ba.add_edge_e g));
               { all =
@@ -148,12 +158,18 @@ let translate (phi : formula) : Ba.t =
                        red_states_from_s0.marked_by)
                   |> formula_map_on_sets_union red_states.marked_by
               }))
-          unmanaged_states.all
-          { empty_red_states with marked_by = unmanaged_states.marked_by }
+          unmanaged_red_states.all
+          { empty_red_states with marked_by = unmanaged_red_states.marked_by }
       in
       Cli.print_log "\tNew red states: %s" (Al.red_states_to_string new_red_states);
+      ctx.marking_formulas
+        <- FormulaSet.union
+             ctx.marking_formulas
+             (FormulaMap.to_seq new_red_states.marked_by
+             |> Seq.map (fun (phi, _) -> phi)
+             |> FormulaSet.of_seq);
       { new_red_states with
-        all = filter (fun s -> not (mem s unmanaged_states.all)) new_red_states.all
+        all = filter (fun s -> not (mem s unmanaged_red_states.all)) new_red_states.all
       }
       |> build)
   in
