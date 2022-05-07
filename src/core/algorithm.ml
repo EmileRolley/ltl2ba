@@ -129,7 +129,7 @@ let reduce_state (tmp_state : state) : red_states =
   | Bop (a1, Until, a2) ->
     (* If α = α1 U α2, Y ⟶ Z ∪ {α2} and Y ⟶α Z ∪ {Xα, α1} *)
     let second_set = FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1) in
-    { all = empty |> add FormulaSet.(add a2 tmp_state) |> add second_set
+    { all = empty |> add FormulaSet.(add a2 tmp_state) (* |> add second_set *)
     ; marked_by = FormulaMap.singleton alpha (singleton second_set)
     }
   | _ ->

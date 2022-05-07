@@ -152,7 +152,12 @@ let translate (phi : formula) : Ba.t =
                        red_states_from_s0.marked_by)
                   |> formula_map_on_sets_union red_states.marked_by
               }))
-          unmanaged_red_states.all
+          (unmanaged_red_states.marked_by
+          |> FormulaMap.to_seq
+          |> Seq.map (fun (_, states) -> states)
+          |> List.of_seq
+          |> List.fold_left StateSet.union StateSet.empty
+          |> StateSet.union unmanaged_red_states.all)
           { empty_red_states with marked_by = unmanaged_red_states.marked_by }
       in
       ctx.marking_formulas
