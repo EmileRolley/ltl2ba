@@ -1,7 +1,14 @@
+(library
+  (name cli)
+  (modules cli)
+  (public_name ltl2ba.cli)
+  (libraries ANSITerminal cmdliner))
+
 (executable
  (name ltl2ba)
+ (modules (:standard \ cli))
  (public_name ltl2ba)
- (libraries parsing core cmdliner ANSITerminal)
+ (libraries cli parsing core )
  (package ltl2ba))
 
 (documentation

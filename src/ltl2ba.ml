@@ -10,16 +10,6 @@ module DotPrinter = Automata.TransBuchiDotPrinter
 let return_ok = 0
 let return_err = 1
 
-let parse (lexbuf : lexbuf) : formula option =
-  try Some (Parser.formula Lexer.read lexbuf) with
-  | Lexer.Syntax_error msg ->
-    Printf.printf "[ERROR] %s\n" msg;
-    None
-  | Parser.Error ->
-    Printf.printf "[ERROR] parser error\n";
-    None
-;;
-
 type translating_context =
   { (* Keeps track of all managed states to know when to stop iterate. *)
     mutable already_managed_states : StateSet.t
@@ -123,7 +113,7 @@ let translate (phi : formula) : Ba.t =
                                 (`Normal (Al.sigma s))
                                 (get_vertex (Al.next s))
                               |> Ba.add_edge_e g);
-                       StateSet.diff red_states_from_s0.all states
+                       red_states_from_s0.all
                        |> StateSet.iter (fun s ->
                               Cli.print_log
                                 "\t\t\t[5] Adding acceptance transition: %s -> %s"
@@ -177,6 +167,18 @@ let translate (phi : formula) : Ba.t =
   g
 ;;
 
+(** [parse lexbuf] returns the {!Ltl.formula} stored in the [lexbuf] if the input is
+    valid, otherwise, prints an error message and returns [None].*)
+let parse (lexbuf : lexbuf) : formula option =
+  try Some (Parser.formula Lexer.read lexbuf) with
+  | Lexer.Syntax_error msg ->
+    Cli.print_err "%s" msg;
+    None
+  | Parser.Error ->
+    Cli.print_err "Invalid formula";
+    None
+;;
+
 let driver
     (formula : string) (dot_path : string option) (verbose : bool) (no_color : bool)
     : int
@@ -184,7 +186,6 @@ let driver
   print_endline "--- ltl2ba v0.2.0 ---";
   Cli.verbose_flag := verbose;
   Cli.style_flag := not no_color;
-  (* TODO: manage multiple formulas/input files *)
   match parse (Lexing.from_string formula) with
   | Some phi ->
     Cli.print_log "Parse:";
@@ -196,9 +197,15 @@ let driver
     let automata = translate phi in
     dot_path
     |> Option.fold ~none:() ~some:(fun path ->
-           Cli.print_log "Printing automata in '%s'" path;
-           let file = open_out path in
-           DotPrinter.output_graph file automata);
+           Cli.print_log "Printing automata...";
+           try
+             let file = open_out path in
+             DotPrinter.output_graph file automata;
+             Cli.print_ok
+               "Automata successfully printed in %s"
+               (Cli.with_style' ANSITerminal.[ Bold; magenta ] path)
+           with
+           | Sys_error msg -> Cli.print_err "%s" msg);
     return_ok
   | None -> return_err
 ;;

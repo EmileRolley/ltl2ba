@@ -25,10 +25,26 @@ let with_style (styles : ANSITerminal.style list) (str : ('a, unit, string) form
   if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
 ;;
 
+let with_style' (styles : ANSITerminal.style list) (str : string) : string =
+  if !style_flag then ANSITerminal.sprintf styles "%s" str else Printf.sprintf "%s" str
+;;
+
 let log_marker () = with_style ANSITerminal.[ Bold; blue ] "[LOG] "
 
 let print_log (fmt : ('a, out_channel, unit) format) =
   if !verbose_flag
   then Printf.printf ("%s" ^^ fmt ^^ "\n%!") (log_marker ())
   else Printf.ifprintf stdout fmt
+;;
+
+let ok_marker () = with_style ANSITerminal.[ Bold; green ] "[OK] "
+
+let print_ok (fmt : ('a, out_channel, unit) format) =
+  Printf.printf ("%s" ^^ fmt ^^ "\n%!") (ok_marker ())
+;;
+
+let err_marker () = with_style ANSITerminal.[ Bold; red ] "[ERR] "
+
+let print_err (fmt : ('a, out_channel, unit) format) =
+  Printf.eprintf ("%s" ^^ fmt ^^ "\n%!") (err_marker ())
 ;;

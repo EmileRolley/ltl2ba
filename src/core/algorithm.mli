@@ -3,21 +3,27 @@
 open Ltl
 open Automata
 
+(** {1 Data type definitions} *)
+
 (** Intermediate representation allowing to store reduced [states] computed by the [red]
-    function. *)
+    function.
+
+    Each formula used as a key of the map {!marked_by} corresponds to an acceptance
+    condition.*)
 type red_states =
-  { all : StateSet.t (** Set of reachable reduced states. *)
+  { all : StateSet.t (** Set of all reachable reduced states. *)
   ; marked_by : StateSet.t FormulaMap.t
-        (** TODO: marked_by Map a formula α to the set of only reachable reduced states by
-            using edges marked with α. *)
+        (** Maps a formula α to the set of only reachable reduced states by using edges
+            marked with α. *)
   }
 
+(** [empty_red_states] returns the {!red_states} with an empty [all] and an empty
+    [marked_by]. *)
 val empty_red_states : red_states
 
 (** {1 Functions} *)
 
-val states_to_string : StateSet.t -> string
-val red_states_to_string : red_states -> string
+(** {2 Main logic functions}*)
 
 (** [next state] returns [{α | Xα ∈ state}] *)
 val next : state -> state
@@ -32,5 +38,25 @@ val is_reduced : state -> bool
     [phi] is not a sub-formula of any other such formula of [state]. *)
 val is_maximal : formula -> state -> bool
 
-(** [red state] returns [Red(Y) = {Z reduced | Y ⟶{^*} Z} ] *)
+(** [red state] returns the {!red_states} corresponding the reduction of the state
+    [state].
+
+    Where:
+
+    - {!all} is equal to \{Z reduced | [state] ⟶{^ *} Z\}
+    - and the value of {!marked_by} associated to the key α equals to \{Z reduced |
+      [state] ⟶{^ *} without using an edge marked by α\}*)
 val red : state -> red_states
+
+(** {2 Printing functions} *)
+
+(** [states_to_string s] returns the string representation of all {!Automata.state} in [s]
+
+    Each one is surrounded by [`Braces]. *)
+val states_to_string : StateSet.t -> string
+
+(** [red_states_to_string red_states] return the string representation of the
+    [red_states].
+
+    Used for debugging purpose. *)
+val red_states_to_string : red_states -> string
