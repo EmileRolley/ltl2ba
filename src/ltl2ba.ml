@@ -35,19 +35,19 @@ let translate (phi : formula) : Ba.t =
     if FormulaSet.equal init_state s then `Init s else `Normal s
   in
   let rec build (unmanaged_red_states : Al.red_states) : Al.red_states =
-    Cli.print_log "\tUnmanaged states1: %s" (Al.red_states_to_string unmanaged_red_states);
-    Cli.print_log
-      "\tAlready managed states: %s"
-      (Al.states_to_string ctx.already_managed_states);
+    (* Cli.print_log *)
+    (*   "\tAlready managed states: { %s }" *)
+    (*   (Al.states_to_string ctx.already_managed_states); *)
     let open StateSet in
     if subset unmanaged_red_states.all ctx.already_managed_states
     then empty_red_states
     else (
-      Cli.print_log "\tUnmanaged state: %s" (Al.red_states_to_string unmanaged_red_states);
+      (* Cli.print_log "\tUnmanaged state: %s" (Al.red_states_to_string
+         unmanaged_red_states); *)
       let new_red_states =
         StateSet.fold
           (fun s0 red_states ->
-            Cli.print_log "\t\tY = {%s}" (state_to_string s0);
+            Cli.print_log "\tY = {%s}" (state_to_string s0);
             ctx.already_managed_states <- StateSet.add s0 ctx.already_managed_states;
             if FormulaSet.is_empty s0
             then (
@@ -61,22 +61,20 @@ let translate (phi : formula) : Ba.t =
                 |> List.sort_uniq Ltl.compare
               in
               Cli.print_log
-                "\t\t\tAdding acceptance transition: %s -> %s"
+                "\t\t- Adding acceptance transition: %s -> %s"
                 (state_to_string s0)
                 (state_to_string s0);
               Ba.E.create
                 (get_vertex s0)
-                (`Acceptant (acceptant_formulas, Al.sigma s0))
+                (if 0 < List.length acceptant_formulas
+                then `Acceptant (acceptant_formulas, Al.sigma s0)
+                else `Normal (Al.sigma s0))
                 (get_vertex s0)
               |> Ba.add_edge_e g;
               empty_red_states)
             else (
               (* Gets reduced states from [s0]. *)
               let red_states_from_s0 = Al.red s0 in
-              Cli.print_log
-                "\t Al.red [%s]: %s"
-                (state_to_string s0)
-                (red_states_to_string red_states_from_s0);
               (* Adds corresponding edges and states in the automata. *)
               if FormulaMap.is_empty red_states_from_s0.marked_by
               then
@@ -84,7 +82,7 @@ let translate (phi : formula) : Ba.t =
                 red_states_from_s0.all
                 |> StateSet.iter (fun s ->
                        Cli.print_log
-                         "\t\t\t[3] Adding acceptance transition: %s -> %s"
+                         "\t\t- Adding acceptance transition: %s -> %s"
                          (state_to_string s0)
                          (state_to_string (Al.next s));
                        let edge =
@@ -101,29 +99,35 @@ let translate (phi : formula) : Ba.t =
                 red_states_from_s0.marked_by
                 |> FormulaMap.iter (fun phi states ->
                        (* Adds acceptance transitions corresponding to F_[phi]. *)
-                       states
-                       (* |> StateSet.filter is_reduced *)
+                       Cli.print_log
+                         "\tAdding transition for [%s] with states: %s"
+                         (Ltl.to_string phi)
+                         (states_to_string states);
+                       StateSet.diff red_states_from_s0.all states
                        |> StateSet.iter (fun s ->
                               Cli.print_log
-                                "\t\t\t[4] Adding transition: %s -> %s"
-                                (state_to_string s0)
-                                (state_to_string s);
-                              Ba.E.create
-                                (get_vertex s0)
-                                (`Normal (Al.sigma s))
-                                (get_vertex (Al.next s))
-                              |> Ba.add_edge_e g);
-                       red_states_from_s0.all
-                       |> StateSet.iter (fun s ->
-                              Cli.print_log
-                                "\t\t\t[5] Adding acceptance transition: %s -> %s"
+                                "\t\t- Adding acceptance transition for %s: %s -> %s"
+                                (Ltl.to_string phi)
                                 (state_to_string s0)
                                 (state_to_string s);
                               Ba.E.create
                                 (get_vertex s0)
                                 (`Acceptant ([ phi ], Al.sigma s))
                                 (get_vertex (Al.next s))
-                              |> Ba.add_edge_e g));
+                              |> Ba.add_edge_e g);
+                       states
+                       |> StateSet.iter (fun s ->
+                              Cli.print_log
+                                "\t\t- Adding transition: %s -> %s"
+                                (state_to_string s0)
+                                (state_to_string s);
+                              let edge =
+                                Ba.E.create
+                                  (get_vertex s0)
+                                  (`Normal (Al.sigma s))
+                                  (get_vertex (Al.next s))
+                              in
+                              Ba.add_edge_e g edge));
               { all =
                   fold
                     (fun s next_red_state -> add (next s) next_red_state)
@@ -151,7 +155,6 @@ let translate (phi : formula) : Ba.t =
           unmanaged_red_states.all
           { empty_red_states with marked_by = unmanaged_red_states.marked_by }
       in
-      Cli.print_log "\tNew red states: %s" (Al.red_states_to_string new_red_states);
       ctx.marking_formulas
         <- FormulaSet.union
              ctx.marking_formulas
@@ -188,11 +191,11 @@ let driver
   Cli.style_flag := not no_color;
   match parse (Lexing.from_string formula) with
   | Some phi ->
-    Cli.print_log "Parse:";
-    Cli.print_log "\tφ := %s" Ltl.(to_string phi);
-    Cli.print_log "Calculate NNF:";
+    Cli.print_log "Parsing formula...";
+    Cli.print_ok "     φ := %s" Ltl.(to_string phi);
+    Cli.print_log "Calculating NNF...";
     let phi = Ltl.nnf phi in
-    Cli.print_log "\tφ := %s" Ltl.(to_string phi);
+    Cli.print_ok "NNF(φ) := %s" Ltl.(to_string phi);
     Cli.print_log "Translating to automata...";
     let automata = translate phi in
     dot_path
@@ -201,9 +204,7 @@ let driver
            try
              let file = open_out path in
              DotPrinter.output_graph file automata;
-             Cli.print_ok
-               "Automata successfully printed in %s"
-               (Cli.with_style' ANSITerminal.[ Bold; magenta ] path)
+             Cli.print_ok "Automata successfully printed in '%s'" path
            with
            | Sys_error msg -> Cli.print_err "%s" msg);
     return_ok

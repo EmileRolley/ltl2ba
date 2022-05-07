@@ -1,7 +1,7 @@
 (library
  (name core)
  (public_name ltl2ba.core)
- (libraries ltl2ba.cli base ocamlgraph)
+ (libraries ltl2ba.cli ocamlgraph)
  (modules (:standard))
  (instrumentation (backend bisect_ppx)))
 

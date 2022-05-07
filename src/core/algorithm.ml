@@ -129,7 +129,7 @@ let reduce_state (tmp_state : state) : red_states =
   | Bop (a1, Until, a2) ->
     (* If α = α1 U α2, Y ⟶ Z ∪ {α2} and Y ⟶α Z ∪ {Xα, α1} *)
     let second_set = FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1) in
-    { all = empty |> add FormulaSet.(add a2 tmp_state) (* |> add second_set *)
+    { all = empty |> add FormulaSet.(add a2 tmp_state) |> add second_set
     ; marked_by = FormulaMap.singleton alpha (singleton second_set)
     }
   | _ ->
@@ -137,16 +137,36 @@ let reduce_state (tmp_state : state) : red_states =
       " should never be reached, as [alpha] is the maximal not reduced subset of [state]\n"
 ;;
 
-let red state =
-  (* Removes all states equivalent to false -- i.e containing the formula ⊥ or contaning
-     both φ and ¬φ. *)
-  let remove_dead_states : StateSet.t -> StateSet.t =
-    let contains_phi_and_not_phi state : bool =
-      FormulaSet.exists (fun phi -> FormulaSet.mem (neg phi) state) state
-    in
-    StateSet.filter (fun state ->
-        not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
+(* Removes all states equivalent to false -- i.e containing the formula ⊥ or contaning
+   both φ and ¬φ. *)
+let remove_dead_states : StateSet.t -> StateSet.t =
+  let contains_phi_and_not_phi state : bool =
+    FormulaSet.exists (fun phi -> FormulaSet.mem (neg phi) state) state
   in
+  StateSet.filter (fun state ->
+      not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
+;;
+
+(** [reduce_states states] reduces each not reduced state of [states].*)
+let reduce_states (states : StateSet.t) : red_states =
+  states
+  |> remove_dead_states
+  |> fun states_without_false ->
+  StateSet.fold
+    (fun state new_states ->
+      let red_states =
+        if is_reduced state
+        then { empty_red_states with all = StateSet.singleton state }
+        else reduce_state state
+      in
+      { all = StateSet.union new_states.all red_states.all
+      ; marked_by = formula_map_on_sets_union new_states.marked_by red_states.marked_by
+      })
+    states_without_false
+    empty_red_states
+;;
+
+let red state =
   (* Reduces recursively the state in [red_states] until all states are reduced, meaning
      that [red_states] contains all the leafs of the temporary oriented graph built from
      [state] *)
@@ -154,51 +174,25 @@ let red state =
     if StateSet.for_all is_reduced red_states.all
     then red_states
     else (
-      let new_states =
-        red_states.all
-        |> remove_dead_states
-        |> fun states_without_false ->
-        StateSet.fold
-          (fun state new_states ->
-            let red_states =
-              if is_reduced state
-              then { empty_red_states with all = StateSet.singleton state }
-              else reduce_state state
-            in
-            { all = StateSet.union new_states.all red_states.all
-            ; marked_by =
-                formula_map_on_sets_union new_states.marked_by red_states.marked_by
+      (* Reduces all states in [red_states.all] but new states computed in
+         [new_red_states_markedby_not_reduced.marked_by] are not reduced. *)
+      let new_red_states_markedby_not_reduced = reduce_states red_states.all in
+      (* Reduces [new_red_states_markedby_not_reduced.marked_by].*)
+      let new_red_states =
+        FormulaMap.fold
+          (fun phi states new_red_states ->
+            let new_marked_red_states = reduce_states states in
+            { new_red_states with
+              marked_by =
+                formula_map_on_sets_union
+                  new_red_states.marked_by
+                  new_marked_red_states.marked_by
+                |> FormulaMap.add phi new_marked_red_states.all
             })
-          states_without_false
-          empty_red_states
+          red_states.marked_by
+          new_red_states_markedby_not_reduced
       in
-      (* let new_states = *)
-      (*   FormulaMap.fold (fun phi states new_red_states -> *)
-      (*     let new_marked_red_states = *)
-      (*     states *)
-      (*   |> remove_dead_states *)
-      (*   |> fun states_without_false -> *)
-      (*   StateSet.fold *)
-      (*     (fun state new_states -> *)
-      (*       let red_states = *)
-      (*         if is_reduced state *)
-      (*         then { empty_red_states with all = StateSet.singleton state } *)
-      (*         else reduce_state state *)
-      (*       in *)
-      (*       { *)
-      (*         new_states with marked_by = *)
-      (*           formula_map_on_sets_union new_states.marked_by red_states.marked_by *)
-      (*       }) *)
-      (*     states_without_false *)
-      (*     empty_red_states *)
-      (*     in *)
-      (*     {new_red_states with marked_by = new_marked_red_states.marked_by *)
-      (*       } *)
-      (*   ) *)
-      (*   red_states.marked_by *)
-      (*   new_states *)
-      (*   in *)
-      reduce new_states)
+      reduce new_red_states)
   in
   if FormulaSet.is_empty state
   then empty_red_states
