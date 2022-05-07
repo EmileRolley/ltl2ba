@@ -40,7 +40,7 @@ module TransBuchi : sig
         ]
        and type E.label =
         [ `Normal of FormulaSet.t
-        | `Acceptant of Ltl.formula * FormulaSet.t
+        | `Acceptant of Ltl.formula list * FormulaSet.t
         ]
 end
 
@@ -64,3 +64,8 @@ val state_to_string
   -> ?empty:string
   -> state
   -> string
+
+val formula_map_on_sets_union
+  :  StateSet.t FormulaMap.t
+  -> StateSet.t FormulaMap.t
+  -> StateSet.t FormulaMap.t

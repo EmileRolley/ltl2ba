@@ -18,6 +18,13 @@ end)
 
 type state = FormulaSet.t
 
+let formula_map_on_sets_union =
+  FormulaMap.union (fun _ states states' ->
+      if StateSet.mem FormulaSet.empty states'
+      then Some states
+      else Some (StateSet.union states states'))
+;;
+
 let state_to_string ?(surround = `Empty) ?(empty = "∅") (state : state) : string =
   if FormulaSet.is_empty state
   then empty
@@ -85,15 +92,15 @@ module TransBuchi = struct
       (struct
         type t =
           [ `Normal of FormulaSet.t
-          | `Acceptant of Ltl.formula * FormulaSet.t
+          | `Acceptant of Ltl.formula list * FormulaSet.t
           ]
 
         let compare e e' =
           match e, e' with
           | `Normal s, `Normal s' -> FormulaSet.compare s s'
-          | `Acceptant (phi, s), `Acceptant (phi', s') ->
-            if 0 <> Ltl.compare phi phi'
-            then Ltl.compare phi phi'
+          | `Acceptant (phis, s), `Acceptant (phis', s') ->
+            if 0 <> List.compare Ltl.compare phis phis'
+            then List.compare Ltl.compare phis phis'
             else FormulaSet.compare s s'
           | `Acceptant _, `Normal _ -> -1
           | `Normal _, `Acceptant _ -> 1
@@ -137,12 +144,14 @@ module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
   let edge_attributes = function
     | _, `Normal formulas, _ ->
       default_edge_attributes () @ [ `Label (state_to_string ~empty:"Σ" formulas) ]
-    | _, `Acceptant (alpha, formulas), _ ->
+    | _, `Acceptant (alphas, formulas), _ ->
+      let label = alphas |> List.map Ltl.to_string |> String.concat ", " in
       default_edge_attributes ()
       @ [ `Style `Dashed
         ; `Label (state_to_string ~empty:"Σ" formulas)
-        ; `Headlabel (" " ^ Ltl.to_string alpha ^ " ")
-        ; `Labelfontcolor (pick_color alpha)
+        ; `Headlabel (" " ^ label ^ " ")
+        ; `Labelfontcolor
+            (if 1 = List.length alphas then pick_color (List.hd alphas) else 0xc72cff)
         ; `Labelfontsize 8
         ]
   ;;
