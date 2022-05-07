@@ -158,33 +158,17 @@ let red state =
         |> fun states_without_false ->
         StateSet.fold
           (fun state new_states ->
-            if is_reduced state
-            then { new_states with all = add state new_states.all }
-            else reduce_state state)
+            let red_states =
+              if is_reduced state
+              then { empty_red_states with all = singleton state }
+              else reduce_state state
+            in
+            { all = StateSet.union new_states.all red_states.all
+            ; marked_by =
+                formula_map_on_sets_union new_states.marked_by red_states.marked_by
+            })
           states_without_false
           empty_red_states
-      in
-      (* FIXME: both reducing should be done in the same time -> issue when multiple
-         reducing in a row. *)
-      let new_states =
-        FormulaMap.fold
-          (fun phi states new_states ->
-            states
-            |> remove_dead_states
-            |> fun states_without_false ->
-            StateSet.fold
-              (fun state new_states ->
-                if is_reduced state
-                then
-                  { new_states with
-                    marked_by =
-                      FormulaMap.add phi (StateSet.singleton state) new_states.marked_by
-                  }
-                else reduce_state state)
-              states_without_false
-              new_states)
-          red_states.marked_by
-          new_states
       in
       reduce new_states)
   in
