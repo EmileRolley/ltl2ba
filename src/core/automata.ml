@@ -19,10 +19,7 @@ end)
 type state = FormulaSet.t
 
 let formula_map_on_sets_union =
-  FormulaMap.union (fun _ states states' ->
-      if StateSet.mem FormulaSet.empty states'
-      then Some states
-      else Some (StateSet.union states states'))
+  FormulaMap.union (fun _ states states' -> Some (StateSet.union states states'))
 ;;
 
 let state_to_string ?(surround = `Empty) ?(empty = "∅") (state : state) : string =
@@ -40,36 +37,7 @@ let state_to_string ?(surround = `Empty) ?(empty = "∅") (state : state) : stri
          "")
 ;;
 
-type transition = state * FormulaSet.t * state
-
-module TransitionSet = Set.Make (struct
-  type t = transition
-
-  let compare (s1, e, s2) (s1', e', s2') =
-    if 0 <> FormulaSet.compare s1 s1'
-    then FormulaSet.compare s1 s1'
-    else if 0 <> FormulaSet.compare e e'
-    then FormulaSet.compare e e'
-    else FormulaSet.compare s2 s2'
-  ;;
-end)
-
 module TransBuchi = struct
-  type automata_t =
-    { mutable states : StateSet.t
-    ; mutable transitions : TransitionSet.t
-    ; mutable inits : StateSet.t
-    ; mutable acceptings : TransitionSet.t FormulaMap.t
-    }
-
-  let automata =
-    { states = StateSet.empty
-    ; transitions = TransitionSet.empty
-    ; inits = StateSet.empty
-    ; acceptings = FormulaMap.empty
-    }
-  ;;
-
   include
     Graph.Imperative.Digraph.ConcreteLabeled
       (struct
@@ -108,23 +76,12 @@ module TransBuchi = struct
 
         let default = `Normal FormulaSet.empty
       end)
-
-  (** TODO: add_edges + print_automata*)
-  let add_vertex g v =
-    (* Adds to [TransBuchiAutomata.automata]. *)
-    (match v with
-    | `Init s ->
-      automata.inits <- StateSet.add s automata.inits;
-      automata.states <- StateSet.add s automata.states
-    | `Normal s -> automata.states <- StateSet.add s automata.states);
-    (* Adds to [TransBuchiAutomata.t] (function implemented by the [Graph] module. *)
-    add_vertex g v
-  ;;
 end
 
 module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
   include TransBuchi
 
+  (** Default colors used to print [Headlabels] of acceptant transitions.*)
   let colors =
     [ 0x264653 (* #264653 *)
     ; 0x2a9d8f (* #2a9d8f *)
@@ -134,14 +91,18 @@ module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
     ]
   ;;
 
+  (** [pick_color phi] returns the corresponding color of the formula [phi]. *)
   let pick_color (phi : Ltl.formula) : int =
     Hashtbl.hash phi mod List.length colors |> List.nth colors
   ;;
 
   let default_edge_attributes _ = [ `Arrowsize 0.45 ]
 
-  (* TODO: calculates the sigma of phi instead of printing Σ. *)
-  let edge_attributes = function
+  (** [edge_attributes e] returns the edge attributes for the edge [e].*)
+  let (edge_attributes :
+        'a * [< `Acceptant of Ltl.formula list * state | `Normal of state ] * 'b
+        -> Graph.Graphviz.DotAttributes.edge list)
+    = function
     | _, `Normal formulas, _ ->
       default_edge_attributes () @ [ `Label (state_to_string ~empty:"Σ" formulas) ]
     | _, `Acceptant (alphas, formulas), _ ->
@@ -158,12 +119,16 @@ module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
 
   let get_subgraph _ = None
 
-  let vertex_attributes = function
+  (** [vertex_attributes v] returns the vertex attributes for the vertex [v].*)
+  let (vertex_attributes :
+        [< `Init of 'a | `Normal of 'b ] -> Graph.Graphviz.DotAttributes.vertex list)
+    = function
     | `Init _ -> [ `Shape `Box ]
     | `Normal _ -> [ `Shape `Ellipse ]
   ;;
 
-  let vertex_name = function
+  (** [vertex_name v] returns the label of the vertex [v].*)
+  let (vertex_name : [< `Init of state | `Normal of state ] -> string) = function
     | `Init s | `Normal s -> state_to_string ~surround:`Quotes s
   ;;
 
