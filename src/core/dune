@@ -3,7 +3,9 @@
  (public_name ltl2ba.core)
  (libraries ltl2ba.cli ocamlgraph)
  (modules (:standard))
- (instrumentation (backend bisect_ppx)))
+ (instrumentation
+   (backend bisect_ppx --exclusions src/core/bisect.exclude)
+   (deps bisect.exclude)))
 
 (documentation
  (package ltl2ba)
