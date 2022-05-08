@@ -5,7 +5,7 @@ help : Makefile
 
 #> dependencies | Install all OCaml ltl2ba dependencies
 dependencies:
-	opam install . --deps-only --with-doc --with-test --yes
+	opam install . --deps-only --with-doc --with-test --yes --working-dir
 
 #> build        | Builds the ltl2ba executable
 build:

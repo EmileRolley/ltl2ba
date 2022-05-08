@@ -100,29 +100,15 @@ is defined with:
 - Acceptance conditions: ∀.α ∈ φ, with α = α{_1} U α{_2}: F{_α} =
 \{Y ⟶{^Σ{_Z}} next(Z) | Y ⊆ S and Z ⊆ Red{_α}(Y)\}
 
-{2 Question}
-
-{i Let {e 𝒜} be a Büchi automaton on transitions. Give a standard Büchi automaton
-recognizing the same language as {e 𝒜}, and justify its construction by proving
-that both automata recognize the same language. How to generalize the
-construction to generalized automata?}
-
-TODO.
-
-{2 Examples}
-
-{3 1. φ = p U Xq}
+{2 Example φ = p U Xq}
 
 Let apply the {!section-algo} to the LTL formula φ = p U Xq.
 
 Note that φ is already in NNF, therefore we can go directly to the
 {!section-second}.
 
-First, let's calculate all sub-formulas of φ: \{p U Xq; Xq; p; q\}.
-
-Now, let's calculate transitions from the initial state S{_0} = \{p U Xq\}.
-
-Let's calculate the edges of the intermediate oriented graph from S{_0}:
+Let's calculate transitions from the initial state S{_0} = \{p U Xq\}.
+We have the edges of the intermediate oriented graph from S{_0}:
 
 + S{_0} ⟶ \{\} ∪ \{α{_2}\} = \{Xq\}
 + S{_0} ⟶ {^φ} \{\} ∪ \{Xα, α{_1}\} = \{X(φ), p\}
@@ -147,7 +133,7 @@ At the end, 𝒜 is defined with:
 
 - S = \{\{φ\}, \{q\}\},
 - Σ = \{p, q\}
--  \{φ\} ⟶{^p} \{φ\}, \{φ\} ⟶{^Σ} \{q\}, \{q\} ⟶{^q} \{\} and \{\} ⟶{^Σ} \{\}.
+- \{φ\} ⟶{^p} \{φ\}, \{φ\} ⟶{^Σ} \{q\}, \{q\} ⟶{^q} \{\} and \{\} ⟶{^Σ} \{\}.
 - S{_0} = \{φ\}
 - F{_φ} = \{\{φ\} ⟶{^Σ} \{q\}, \{q\} ⟶{^q} \{\}, \{\} ⟶{^Σ} \{\} \}
 
@@ -162,7 +148,3 @@ At the end, 𝒜 is defined with:
 
    ==>: acceptance condition
 v}
-
-{3 2. ψ = G(p ⇒ XFq)}
-
-TODO

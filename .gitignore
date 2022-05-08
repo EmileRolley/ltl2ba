@@ -35,3 +35,6 @@ src/ltl/.jukit/.jukit_info.json
 src/core/.jukit/.jukit_info.json
 
 test.dot
+
+docs/tex2pdf*
+docs/missfont*

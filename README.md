@@ -7,7 +7,6 @@
 
 </div>
 
-
 ## Build
 
 To install OCaml dependencies, run:
@@ -21,6 +20,17 @@ To build the executable, run:
 To run tests:
 
 	make test
+
+## Run
+
+Once it's built, you can simply run the executable:
+
+	./_build/default/src/ltl2ba.exe --help
+
+Or, using `opam` to install the local package:
+
+	opam install . --working-dir
+	ltl2ba --help
 
 ## Documentation
 

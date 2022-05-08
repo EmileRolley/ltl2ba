@@ -9,8 +9,7 @@ open Automata
     function.
 
     Each formula used as a key of the map {!marked_by} corresponds to an acceptance
-    condition. More precisely, Red{_ α} = \{s ∈ S | {!marked_by} \ {!marked_by}[α] U
-    {!all}\}. *)
+    condition. More precisely, Red{_ α} = \{({!marked_by} \ {!marked_by}[α]) U {!all}\}. *)
 type red_states =
   { all : StateSet.t (** Set of all reachable reduced states using only unmarked edges. *)
   ; marked_by : StateSet.t FormulaMap.t
