@@ -8,6 +8,15 @@ type red_states =
 
 let empty_red_states = { all = StateSet.empty; marked_by = FormulaMap.empty }
 
+let red_states_union red_states =
+  red_states.marked_by
+  |> FormulaMap.to_seq
+  |> Seq.map (fun (_, states) -> states)
+  |> List.of_seq
+  |> List.fold_left StateSet.union StateSet.empty
+  |> StateSet.union red_states.all
+;;
+
 let states_to_string states =
   StateSet.fold
     (fun f s ->
@@ -171,7 +180,7 @@ let red state =
      that [red_states] contains all the leafs of the temporary oriented graph built from
      [state] *)
   let rec reduce (red_states : red_states) : red_states =
-    if StateSet.for_all is_reduced red_states.all
+    if StateSet.for_all is_reduced (red_states_union red_states)
     then red_states
     else (
       (* Reduces all states in [red_states.all] but new states computed in

@@ -9,9 +9,10 @@ open Automata
     function.
 
     Each formula used as a key of the map {!marked_by} corresponds to an acceptance
-    condition.*)
+    condition. More precisely, Red{_ α} = \{s ∈ S | {!marked_by} \ {!marked_by}[α] U
+    {!all}\}. *)
 type red_states =
-  { all : StateSet.t (** Set of all reachable reduced states. *)
+  { all : StateSet.t (** Set of all reachable reduced states using only unmarked edges. *)
   ; marked_by : StateSet.t FormulaMap.t
         (** Maps a formula α to the set of only reachable reduced states by using edges
             marked with α. *)
@@ -24,6 +25,9 @@ val empty_red_states : red_states
 (** {1 Functions} *)
 
 (** {2 Main logic functions}*)
+
+(** [red_states_union red_states] Returns the union of all {!StateSet.t} in [red_states]. *)
+val red_states_union : red_states -> StateSet.t
 
 (** [next state] returns [{α | Xα ∈ state}] *)
 val next : state -> state

@@ -264,29 +264,37 @@ let test_red_release () =
 
 let test_red_until () =
   let phi = Prop "p" <~> Ltl.next (Prop "q") in
-  let expected =
-    StateSet.of_list
-      FormulaSet.[ singleton (Ltl.next (Prop "q")); of_list [ Prop "p"; Ltl.next phi ] ]
+  let expected = StateSet.singleton (FormulaSet.singleton (Ltl.next (Prop "q"))) in
+  let expected_marked_by_phi =
+    StateSet.singleton (FormulaSet.of_list [ Prop "p"; Ltl.next phi ])
   in
+  let actual_red_all, actual_red_marked_by_phi =
+    let red_states = To_test.red (FormulaSet.singleton phi) in
+    red_states.all, FormulaMap.find phi red_states.marked_by
+  in
+  al_assert "should be equals" StateSet.(equal expected actual_red_all);
   al_assert
     "should be equals"
-    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)).all)
+    StateSet.(equal expected_marked_by_phi actual_red_marked_by_phi)
 ;;
 
-(** Red({p U (p v Xq)}) = { {p}, {Xq}, {X(p U (p v Xq)), p} }*)
+(** Red({p U (p v Xq)}) = { {p}, {Xq} }*)
 let test_red_multiple_lvl () =
   let phi = Prop "p" <~> (Prop "p" <|> Ltl.next (Prop "q")) in
   let expected =
-    StateSet.of_list
-      FormulaSet.
-        [ singleton (Prop "p")
-        ; singleton (Ltl.next (Prop "q"))
-        ; of_list [ Prop "p"; Ltl.next phi ]
-        ]
+    StateSet.of_list FormulaSet.[ singleton (Prop "p"); singleton (Ltl.next (Prop "q")) ]
   in
+  let expected_marked_by_phi =
+    StateSet.singleton (FormulaSet.of_list [ Prop "p"; Ltl.next phi ])
+  in
+  let actual_red_all, actual_red_marked_by_phi =
+    let red_states = To_test.red (FormulaSet.singleton phi) in
+    red_states.all, FormulaMap.find phi red_states.marked_by
+  in
+  al_assert "should be equals" StateSet.(equal expected actual_red_all);
   al_assert
     "should be equals"
-    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)).all)
+    StateSet.(equal expected_marked_by_phi actual_red_marked_by_phi)
 ;;
 
 let test_red_alpha_empty () =

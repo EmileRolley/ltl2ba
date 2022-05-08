@@ -106,7 +106,12 @@ module TransBuchiDotPrinter = Graph.Graphviz.Dot (struct
     | _, `Normal formulas, _ ->
       default_edge_attributes () @ [ `Label (state_to_string ~empty:"Σ" formulas) ]
     | _, `Acceptant (alphas, formulas), _ ->
-      let label = alphas |> List.map Ltl.to_string |> String.concat ", " in
+      let label =
+        alphas
+        |> List.sort_uniq Ltl.compare
+        |> List.map Ltl.to_string
+        |> String.concat ", "
+      in
       let color =
         if 1 = List.length alphas
         then pick_color (List.hd alphas)
