@@ -1,10 +1,11 @@
 {0 The [Core] module}
 
-This module contains the implementation of the different functions used in the
-core translating algorithm, and the data representation of LTL formulas.
+This modules contains all the core functions and data structures used for
+the implementation of the translating algorithm.
 
 {1 List of modules}
 
-- {{: Core/Ltl/index.html} [Ltl]} - The data reprensentation of LTL formulas
-- {{: Core/Algorithm/index.html} [Algorithm]} - The main functions of the algorithm
+- {{: Core/Algorithm/index.html} [Algorithm]} - The functions needed to the implementation of the algorithm
+- {{: Core/Automata/index.html} [Automata]} - The data representation of Büchi automata on transitions
+- {{: Core/Ltl/index.html} [Ltl]} - The data representation of LTL formulas
 

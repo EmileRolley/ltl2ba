@@ -1,52 +1,45 @@
 open Ltl
+open Automata
 
-module FormulaSet = Set.Make (struct
-  type t = Ltl.formula
+type red_states =
+  { all : StateSet.t
+  ; marked_by : StateSet.t FormulaMap.t
+  }
 
-  let compare = Ltl.compare
-end)
+let empty_red_states = { all = StateSet.empty; marked_by = FormulaMap.empty }
 
-module StateSet = Set.Make (struct
-  type t = FormulaSet.t
-
-  let compare = FormulaSet.compare
-end)
-
-module Label = struct
-  type t = FormulaSet.t
-
-  let compare = FormulaSet.compare
-  let equal s s' = 0 = FormulaSet.compare s s'
-  let hash = Hashtbl.hash
-  let default = FormulaSet.empty
-end
-
-module TransitionGraph = Graph.Imperative.Digraph.ConcreteLabeled (Label) (Label)
-
-type state = FormulaSet.t
-
-let state_to_string ?(quote = false) ?(empty = "∅") (state : state) : string =
-  if FormulaSet.is_empty state
-  then empty
-  else
-    Printf.sprintf
-      (if quote then "\" %s \"" else "%s")
-      (FormulaSet.fold
-         (fun f s -> s ^ (if 0 <> String.length s then ", " else "") ^ to_string f)
-         state
-         "")
+let red_states_union red_states =
+  red_states.marked_by
+  |> FormulaMap.to_seq
+  |> Seq.map (fun (_, states) -> states)
+  |> List.of_seq
+  |> List.fold_left StateSet.union StateSet.empty
+  |> StateSet.union red_states.all
 ;;
 
-type states = StateSet.t
+let states_to_string states =
+  StateSet.fold
+    (fun f s ->
+      s
+      ^ (if 0 <> String.length s then ", " else "")
+      ^ state_to_string ~surround:`Braces f)
+    states
+    ""
+;;
 
-(* TODO: could factorized with [state_to_string]. *)
-let states_to_string (states : states) : string =
+let red_states_to_string red_states =
   Printf.sprintf
-    "{ %s }"
-    (StateSet.fold
-       (fun f s ->
-         s ^ (if 0 <> String.length s then ", " else "") ^ state_to_string ~quote:true f)
-       states
+    "red_states = {\n\t  all: { %s };\n\t  marked_by: { %s }\n\t}"
+    (states_to_string red_states.all)
+    (FormulaMap.fold
+       (fun f states str ->
+         str
+         ^ (if 0 <> String.length str then ", " else "")
+         ^ "<"
+         ^ Ltl.to_string f
+         ^ "> = "
+         ^ states_to_string states)
+       red_states.marked_by
        "")
 ;;
 
@@ -107,67 +100,110 @@ let is_maximal phi state =
     is_empty s || (not @@ exists (fun psi -> Ltl.(is_subformula psi phi)) s))
 ;;
 
-let red state =
+(** [reduce_state tmp_state] reduces the first maximal not reduced subset of [tmp_state] *)
+let reduce_state (tmp_state : state) : red_states =
   let open StateSet in
-  (* Reduces first maximal not reduced subset of [tmp_state] *)
-  let reduce_state (tmp_state : state) : states =
-    Printf.printf "\tReducing state: %s\n" (state_to_string tmp_state);
-    (* Finds first maximal not reduced subset of [tmp_state], if exists, otherwise,
-       returns simply the first formula of [tmp_state]. *)
-    let unreduced_subset =
-      tmp_state |> FormulaSet.filter (fun phi -> not (formula_is_reduced phi))
-    in
-    let alpha =
-      unreduced_subset
-      |> FormulaSet.filter (fun phi -> is_maximal phi unreduced_subset)
-      |> FormulaSet.choose
-    in
-    Printf.printf "\tMaximal unreduced formula: %s\n" (to_string alpha);
-    let tmp_state = FormulaSet.remove alpha tmp_state in
-    match alpha with
-    | Bop (a1, Or, a2) ->
-      (* If α = α1 ∨ α2, Y ⟶ Z ∪ {α1} and Y ⟶ Z ∪ {α2} *)
-      empty |> add FormulaSet.(add a1 tmp_state) |> add FormulaSet.(add a2 tmp_state)
-    | Bop (a1, And, a2) ->
-      (* If α = α1 ∧ α2, Y ⟶ Z ∪ {α1, α2} *)
-      empty |> add FormulaSet.(tmp_state |> add a1 |> add a2)
-    | Bop (a1, Release, a2) ->
-      (* If α = α1 R α2, Y ⟶ Z ∪ {α1, α2} and Y ⟶ Z ∪ {Xα, α2} *)
-      empty
-      |> add FormulaSet.(tmp_state |> add a1 |> add a2)
-      |> add FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a2)
-    | Bop (a1, Until, a2) ->
-      (* If α = α1 U α2, Y ⟶ Z ∪ {α2} and Y ⟶α Z ∪ {Xα, α1} *)
-      empty
-      |> add FormulaSet.(add a2 tmp_state)
-      |> add FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1)
-    | _ ->
-      failwith
-        " should never be reached, as [alpha] is the maximal not reduced subset of [state]\n"
+  Cli.print_log "\tReducing state: %s" (state_to_string tmp_state);
+  (* Finds first maximal not reduced subset of [tmp_state], if exists, otherwise, returns
+     simply the first formula of [tmp_state]. *)
+  let unreduced_subset =
+    tmp_state |> FormulaSet.filter (fun phi -> not (formula_is_reduced phi))
   in
-  (* Reduces the state in [states] until all states are reduced, meaning that [states]
-     contains all the leafs of the temporary oriented graph built from [state] *)
-  let rec reduce (states : states) : states =
-    let contains_phi_and_not_phi state : bool =
-      FormulaSet.exists (fun phi -> FormulaSet.mem (neg phi) state) state
-    in
-    if for_all is_reduced states
-    then states
-    else (
-      let new_states =
-        states
-        |> StateSet.filter (fun state ->
-               not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
-        |> fun states_without_false ->
-        StateSet.fold
-          (fun state new_states ->
-            union
-              new_states
-              (if is_reduced state then singleton state else reduce_state state))
-          states_without_false
-          empty
+  let alpha =
+    unreduced_subset
+    |> FormulaSet.filter (fun phi -> is_maximal phi unreduced_subset)
+    |> FormulaSet.choose
+  in
+  let tmp_state = FormulaSet.remove alpha tmp_state in
+  match alpha with
+  | Bop (a1, Or, a2) ->
+    (* If α = α1 ∨ α2, Y ⟶ Z ∪ {α1} and Y ⟶ Z ∪ {α2} *)
+    { empty_red_states with
+      all =
+        empty |> add FormulaSet.(add a1 tmp_state) |> add FormulaSet.(add a2 tmp_state)
+    }
+  | Bop (a1, And, a2) ->
+    (* If α = α1 ∧ α2, Y ⟶ Z ∪ {α1, α2} *)
+    { empty_red_states with
+      all = empty |> add FormulaSet.(tmp_state |> add a1 |> add a2)
+    }
+  | Bop (a1, Release, a2) ->
+    (* If α = α1 R α2, Y ⟶ Z ∪ {α1, α2} and Y ⟶ Z ∪ {Xα, α2} *)
+    { empty_red_states with
+      all =
+        empty
+        |> add FormulaSet.(tmp_state |> add a1 |> add a2)
+        |> add FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a2)
+    }
+  | Bop (a1, Until, a2) ->
+    (* If α = α1 U α2, Y ⟶ Z ∪ {α2} and Y ⟶α Z ∪ {Xα, α1} *)
+    let second_set = FormulaSet.(tmp_state |> add (Ltl.next alpha) |> add a1) in
+    { all = empty |> add FormulaSet.(add a2 tmp_state) (* |> add second_set *)
+    ; marked_by = FormulaMap.singleton alpha (singleton second_set)
+    }
+  | _ ->
+    failwith
+      " should never be reached, as [alpha] is the maximal not reduced subset of [state]\n"
+;;
+
+(* Removes all states equivalent to false -- i.e containing the formula ⊥ or contaning
+   both φ and ¬φ. *)
+let remove_dead_states : StateSet.t -> StateSet.t =
+  let contains_phi_and_not_phi state : bool =
+    FormulaSet.exists (fun phi -> FormulaSet.mem (neg phi) state) state
+  in
+  StateSet.filter (fun state ->
+      not (FormulaSet.mem (Bool false) state || contains_phi_and_not_phi state))
+;;
+
+(** [reduce_states states] reduces each not reduced state of [states].*)
+let reduce_states (states : StateSet.t) : red_states =
+  states
+  |> remove_dead_states
+  |> fun states_without_false ->
+  StateSet.fold
+    (fun state new_states ->
+      let red_states =
+        if is_reduced state
+        then { empty_red_states with all = StateSet.singleton state }
+        else reduce_state state
       in
-      reduce new_states)
+      { all = StateSet.union new_states.all red_states.all
+      ; marked_by = formula_map_on_sets_union new_states.marked_by red_states.marked_by
+      })
+    states_without_false
+    empty_red_states
+;;
+
+let red state =
+  (* Reduces recursively the state in [red_states] until all states are reduced, meaning
+     that [red_states] contains all the leafs of the temporary oriented graph built from
+     [state] *)
+  let rec reduce (red_states : red_states) : red_states =
+    if StateSet.for_all is_reduced (red_states_union red_states)
+    then red_states
+    else (
+      (* Reduces all states in [red_states.all] but new states computed in
+         [new_red_states_markedby_not_reduced.marked_by] are not reduced. *)
+      let new_red_states_markedby_not_reduced = reduce_states red_states.all in
+      (* Reduces [new_red_states_markedby_not_reduced.marked_by].*)
+      let new_red_states =
+        FormulaMap.fold
+          (fun phi states new_red_states ->
+            let new_marked_red_states = reduce_states states in
+            { new_red_states with
+              marked_by =
+                formula_map_on_sets_union
+                  new_red_states.marked_by
+                  new_marked_red_states.marked_by
+                |> FormulaMap.add phi new_marked_red_states.all
+            })
+          red_states.marked_by
+          new_red_states_markedby_not_reduced
+      in
+      reduce new_red_states)
   in
-  if FormulaSet.is_empty state then empty else reduce (singleton state)
+  if FormulaSet.is_empty state
+  then empty_red_states
+  else reduce { all = StateSet.singleton state; marked_by = FormulaMap.empty }
 ;;

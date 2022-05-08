@@ -1,6 +1,7 @@
 open Parsing
 open Core
 open Ltl
+open Automata
 open Algorithm
 open Test_utils
 module Al = Alcotest
@@ -20,7 +21,7 @@ module To_test = struct
   let sigma : state -> FormulaSet.t = Algorithm.sigma
   let is_reduced : state -> bool = Algorithm.is_reduced
   let is_maximal : formula -> state -> bool = Algorithm.is_maximal
-  let red : state -> states = Algorithm.red
+  let red : state -> red_states = Algorithm.red
 end
 
 let al_assert_formula_eq = al_assert_formula_eq_according_to_test To_test.nnf
@@ -203,13 +204,13 @@ let test_sigma_p_and_neg_q () =
 ;;
 
 let test_red_empty () =
-  al_assert "should be empty" (StateSet.empty = To_test.red FormulaSet.empty)
+  al_assert "should be empty" (StateSet.empty = (To_test.red FormulaSet.empty).all)
 ;;
 
 let test_red_already_reduced () =
   let state = FormulaSet.of_list [ Prop "p"; neg (Prop "q"); Ltl.next (Prop "p") ] in
   let expected = StateSet.singleton state in
-  al_assert "should be equals" (expected = To_test.red state)
+  al_assert "should be equals" (expected = (To_test.red state).all)
 ;;
 
 let test_red_disjunction () =
@@ -218,18 +219,18 @@ let test_red_disjunction () =
     StateSet.of_list
       [ FormulaSet.singleton (Prop "p"); FormulaSet.of_list [ Prop "p"; Prop "q" ] ]
   in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_red_conjunction () =
   let state = FormulaSet.of_list [ Prop "p"; Prop "p" <&> Prop "q" ] in
   let expected = StateSet.of_list [ FormulaSet.of_list [ Prop "p"; Prop "q" ] ] in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_red_false () =
   let state = FormulaSet.of_list [ Bool false; Prop "p" <&> Prop "q" ] in
-  al_assert "should be equals" StateSet.(equal empty (To_test.red state))
+  al_assert "should be equals" StateSet.(equal empty (To_test.red state).all)
 ;;
 
 let test_red_next () =
@@ -238,7 +239,7 @@ let test_red_next () =
       Ltl.[ next (Bool false <^> (neg (Prop "p") <|> next (Bool true <~> Prop "q"))) ]
   in
   let expected = StateSet.of_list [ state ] in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_is_reduced_bug () =
@@ -258,34 +259,56 @@ let test_red_release () =
         ; of_list [ Prop "p"; Ltl.next (Prop "p" <^> Prop "q"); Prop "q" ]
         ]
   in
-  al_assert "should be equals" StateSet.(equal expected (To_test.red state))
+  al_assert "should be equals" StateSet.(equal expected (To_test.red state).all)
 ;;
 
 let test_red_until () =
   let phi = Prop "p" <~> Ltl.next (Prop "q") in
-  let expected =
-    StateSet.of_list
-      FormulaSet.[ singleton (Ltl.next (Prop "q")); of_list [ Prop "p"; Ltl.next phi ] ]
+  let expected = StateSet.singleton (FormulaSet.singleton (Ltl.next (Prop "q"))) in
+  let expected_marked_by_phi =
+    StateSet.singleton (FormulaSet.of_list [ Prop "p"; Ltl.next phi ])
   in
+  let actual_red_all, actual_red_marked_by_phi =
+    let red_states = To_test.red (FormulaSet.singleton phi) in
+    red_states.all, FormulaMap.find phi red_states.marked_by
+  in
+  al_assert "should be equals" StateSet.(equal expected actual_red_all);
   al_assert
     "should be equals"
-    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)))
+    StateSet.(equal expected_marked_by_phi actual_red_marked_by_phi)
 ;;
 
-(** Red({p U (p v Xq)}) = { {p}, {Xq}, {X(p U (p v Xq)), p} }*)
+(** Red({p U (p v Xq)}) = { {p}, {Xq} }*)
 let test_red_multiple_lvl () =
   let phi = Prop "p" <~> (Prop "p" <|> Ltl.next (Prop "q")) in
   let expected =
-    StateSet.of_list
-      FormulaSet.
-        [ singleton (Prop "p")
-        ; singleton (Ltl.next (Prop "q"))
-        ; of_list [ Prop "p"; Ltl.next phi ]
-        ]
+    StateSet.of_list FormulaSet.[ singleton (Prop "p"); singleton (Ltl.next (Prop "q")) ]
   in
+  let expected_marked_by_phi =
+    StateSet.singleton (FormulaSet.of_list [ Prop "p"; Ltl.next phi ])
+  in
+  let actual_red_all, actual_red_marked_by_phi =
+    let red_states = To_test.red (FormulaSet.singleton phi) in
+    red_states.all, FormulaMap.find phi red_states.marked_by
+  in
+  al_assert "should be equals" StateSet.(equal expected actual_red_all);
   al_assert
     "should be equals"
-    StateSet.(equal expected (To_test.red (FormulaSet.singleton phi)))
+    StateSet.(equal expected_marked_by_phi actual_red_marked_by_phi)
+;;
+
+let test_red_alpha_empty () =
+  al_assert "should be empty" (FormulaMap.empty = (To_test.red FormulaSet.empty).marked_by)
+;;
+
+let test_red_alpha_ex1 () =
+  let phi = Prop "p" <~> Ltl.next (Prop "q") in
+  let expected_marked_by_phi =
+    StateSet.singleton @@ FormulaSet.of_list [ Ltl.next phi; Prop "p" ]
+  in
+  let expected_map = FormulaMap.singleton phi expected_marked_by_phi in
+  let actual = To_test.red (FormulaSet.singleton phi) in
+  al_assert "should be equal" (expected_map = actual.marked_by)
 ;;
 
 let () =
@@ -362,6 +385,10 @@ let () =
               "red({p U (p v Xq)}) = { {p}, {Xq}, {X(p U (p v Xq)), p} }"
               `Quick
               test_red_multiple_lvl
+          ] )
+      ; ( "Calculate Red_α(Z)"
+        , [ test_case "red_alpha({}) = {}" `Quick test_red_alpha_empty
+          ; test_case "red_alpha({p U Xq}) = { {X(p U Xq), p} }" `Quick test_red_alpha_ex1
           ] )
       ]
 ;;
