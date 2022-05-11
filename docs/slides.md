@@ -9,7 +9,7 @@ date: 12 mai 2022
 language: fr-FR
 fontfamily: librebaskerville
 sansfont: librebaskerville
-fontsize: 11pt
+fontsize: 10pt
 theme: default
 colortheme: spruce
 fonttheme: serif
@@ -42,7 +42,9 @@ header-includes:
 
 ## Automates de Büchi sur _les transitions_
 
-\pause Même définition que pour un automate de Büchi généralisé :
+. . .
+
+Même définition que pour un automate de Büchi généralisé :
 
 \begin{center}
   $\mathcal{A} = (S, \rightarrow, S_0, F_1, ..., F_l)$
@@ -50,7 +52,7 @@ header-includes:
   $\forall i \in \{1, ..,  l\}, \; F_i \subseteq \; \rightarrow$
 \end{center}
 
-\pause
+. . .
 
 \begin{figure}[ht]
     \centering
@@ -63,10 +65,57 @@ header-includes:
         \path (x2) edge [bend left] node{$\Sigma$} (x1);
     \end{tikzpicture}
     \caption{Exemple d'automate reconnaissant la formule LTL $\op{GF}\ap{p}$, avec
-    en pointillé, les transitions appartenant à l'unique condition d'acceptation.}
+   en pointillé, les transitions appartenant à l'unique condition d'acceptation.}
 \end{figure}
 
 ## L'algorithme de traduction
+
+. . .
+
+### Intuition
+
+Diviser la formule de départ $\varphi$ en sous-formules plus simple (dites
+_réduites_) et ajouter une condition d'acceptation pour chaque sous-formule de
+la forme $\alpha \op{U} \beta$.
+
+. . .
+
+### Étapes
+
+1. Mise en forme normale négative de $\varphi$.
+2. $S_0 = \{ \varphi \}$.
+3. Pour chaque état Y dans $S$ :
+    - Calculer un graphe orienté temporaire G.
+    - Ajouter dans $\mathcal{A}$ les transitions et les nouveaux états
+      correspondants grâce à G.
+4. Déterminer les transitions appartenant aux conditions d'acceptations.
+
+## L'algorithme de traduction
+
+. . .
+
+### Définition (_NNF_)
+
+Une formule est en **forme normale négative** (_NNF_) si elle est constituée
+uniquement des sous-formules suivantes :
+
+- $\bot, \ap{p}$ et $\neg \ap{p}$ avec $\ap{p} \in$ AP
+- $\op{X}\alpha$ et $\alpha \circledast \beta$ avec $\circledast \in \{\op{U, R, \vee, \wedge}\}$
+
+. . .
+
+### Définition (_ensemble réduit_)
+
+Un ensemble de formules Z est **réduit** si :
+
+- les formules de Z sont de la forme $\ap{p}$ et $\neg \ap{p}$ avec $\ap{p} \in$ AP
+- $\bot \notin$ Z, et $\{\ap{p}, \neg \ap{p}\} \nsubseteq$ Z pour tout $\ap{p} \in$ AP.
+
+## L'algorithme de traduction
+
+### Calcul du graphe orienté intermédiaire
+
+TODO
 
 ## Un exemple pour $\varphi = \ap{p} \; \op{U}\; \op{X}\ap{q}$
 
