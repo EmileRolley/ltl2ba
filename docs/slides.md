@@ -85,10 +85,9 @@ la forme $\alpha \op{U} \beta$.
 1. Mise en forme normale négative de $\varphi$.
 2. $S_0 = \{ \varphi \}$.
 3. Pour chaque état Y dans $S$ :
-    - Calculer un graphe orienté temporaire G.
+    - Calculer un graphe orienté temporaire $\mathcal{G}_Y$.
     - Ajouter dans $\mathcal{A}$ les transitions et les nouveaux états
-      correspondants grâce à G.
-4. Déterminer les transitions appartenant aux conditions d'acceptations.
+      correspondants grâce à $\mathcal{G}_Y$.
 
 ## L'algorithme de traduction
 
@@ -108,14 +107,58 @@ uniquement des sous-formules suivantes :
 
 Un ensemble de formules Z est **réduit** si :
 
-- les formules de Z sont de la forme $\ap{p}$ et $\neg \ap{p}$ avec $\ap{p} \in$ AP
+- toutes les formules de Z sont **réduites**, c'est-à-dire, de la forme
+  $\ap{p}$, $\neg \ap{p}$ ou $\op{X}\alpha$ avec $\ap{p} \in$ AP
 - $\bot \notin$ Z, et $\{\ap{p}, \neg \ap{p}\} \nsubseteq$ Z pour tout $\ap{p} \in$ AP.
 
 ## L'algorithme de traduction
 
-### Calcul du graphe orienté intermédiaire
+. . .
 
-TODO
+### Calcul de $\mathcal{G}_Y$
+
+Soit Y = Z $\cup \{\alpha\}$ où $\alpha$ n'est pas réduite et si possible
+maximale (càd.  n'est sous-formule d'aucune autre formule non réduite de Y).
+Les arêtes à partir de Y sont :
+
+- Si $\alpha = \alpha_1 \vee \alpha_2$, $Y \rightarrow Z \cup \{\alpha_1\}$ et
+  $Y \rightarrow Z \cup \{\alpha_2\}$.
+- Si $\alpha = \alpha_1 \wedge \alpha_2$, $Y \rightarrow Z \cup \{\alpha_1, \alpha_2\}$
+- Si $\alpha = \alpha_1 \; \op{R} \; \alpha_2$, $Y \rightarrow Z \cup \{\alpha_1, \alpha_2\}$
+  et  $Y \rightarrow Z \cup \{\op{X}\alpha, \alpha_2\}$.
+- Si $\alpha = \alpha_1 \; \op{U} \; \alpha_2$, $Y \rightarrow Z \cup \{\alpha_2\}$
+  et  $Y \rightarrow^{\alpha} Z \cup \{\op{X}\alpha, \alpha_1\}$.
+
+. . .
+
+\text{}\newline
+
+Cette construction est appliquée récursivement jusqu'à ce que toutes les
+feuilles du graphe soient réduites.
+
+## L'algorithme de traduction
+
+. . .
+
+### Calcul des transitions à partir de Y
+
+Finalement, une fois $\mathcal{G}_Y$ calculé, sont ajoutées dans $\mathcal{A}$ :
+
+- les transitions suivantes $\{ Y \rightarrow^{\Sigma_{Z}} \text{next}(Z) \; | \; Z \in \text{Red}(Y)\}$
+- pour chaque sous-formule $\alpha = \alpha_1 \; \op{U} \; \alpha_2$,
+  les conditions d'acceptations $F_\alpha = \{ Y \rightarrow^{\Sigma_{Z}} \text{next}(Z) \; | \; Y \in S, \; Z \in \text{Red}_\alpha(Y)\}$
+
+. . .
+
+Avec,
+
+\begin{align*}
+  \text{Red}(Y)           &= \{ Z \text{ réduit} \; | \; Y \rightarrow^{*} Z\}\\
+  \text{Red}_{\alpha}(Y)  &= \{ Z \text{ réduit} \; | \; Y \rightarrow^{* \setminus \alpha} Z\}\\
+  \text{next}(Z)          &= \{ \alpha \; | \; \op{X}\alpha \in Z\}\\
+  \Sigma_Z                &= \bigcap_{\ap{p} \in Z} \Sigma_{\ap{p}} \cap \bigcap_{\neg \ap{p} \in Z} \Sigma_{\neg \ap{p}}
+\end{align*}
+
 
 ## Un exemple pour $\varphi = \ap{p} \; \op{U}\; \op{X}\ap{q}$
 
