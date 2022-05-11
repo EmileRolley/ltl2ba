@@ -1,0 +1,8 @@
+digraph G {
+    0 [label="pUq", color="green"] ;
+    3 [label=" ", color="green"] ;
+    0 -> 0 [color="black"] ;
+    0 -> 3 [color="blue"] ;
+
+    3 -> 3 [color="blue"] ;
+}

@@ -68,7 +68,97 @@ header-includes:
 
 ## L'algorithme de traduction
 
-## Un exemple pour $\varphi = \ap{p} \; \op{U}\; \op{X}\ap{q}$
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+### Algorithme classique
+
+ On commence par calculer la clôture de la formule :
+
+$cl(\varphi) = \{ \ap{p} \; \op{U}\; \ap{q} \; ; \op{\lnot} (\ap{p} \; \op{U}\; \ap{q}) \; ;
+                   \op{X}( \ap{p} \; \op{U}\; \ap{q}) \; ; \op{\lnot} (\op{X}( \ap{p} \; \op{U}\; \ap{q})) \; ; 
+                   \ap{p} \; ; \op{\lnot} \ap{p} \; ; \ap{q} \; ; \op{\lnot} \ap{q} \} ;$
+
+$cl(\varphi)$ est constitué de 8 formules (4 formules et leurs négations).
+
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+<center>
+
+On calcule ainsi les états consistants suivants : 
+
+![](./img/pUqNaifWithoutEdges.jpg){height=70%}
+
+</center>
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+<center>
+
+On a ainsi l'automate suivant : 
+
+![](./img/pUqNaif.jpg){height=70%}
+
+A peine sale ...
+
+</center>
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+### Algorithme Malin
+
+<center>
+
+On commence par mettre l'état initial : c'est la formule actuelle : 
+
+![](./img/pUqEtape1.jpg){height=20%}
+
+</center>
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+<center>
+
+On construit ensuite le graphe temporaire pour l'état à considérer : 
+
+![](./img/pUqEtape2.jpg){height=40%}
+
+</center>
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+<center>
+
+On ajoute ainsi les vrais états du graphe, en vert : 
+
+![](./img/pUqEtape3.jpg){height=70%}
+
+</center>
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+<center>
+
+On a un autre état à considérer, l'état vide. Comme il est réduit et qu'il ne contient pas d'état, il boucle sur lui même : 
+
+![](./img/pUqEtape4.jpg){height=70%}
+
+</center>
+
+## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
+
+<center>
+
+On retire les états temporaires. Comme il y a un Until, il faut ajouter un ensemble de transitions d'acceptations, en bleu : 
+
+![](./img/pUqEtape5.jpg){height=70%}
+
+</center>
+
+
+
+
+
 
 ## (Un autre exemple pour $\varphi = \ap{p} \; \op{U}\; \op{FX}\ap{q}$)
 
