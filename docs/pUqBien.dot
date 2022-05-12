@@ -1,0 +1,12 @@
+digraph G {
+    0 [label="pUq", color="green"] ;
+    1 [label="q", color="white", fontcolor="white"] ;
+    2 [label="p\nX(pUq)", color="white", fontcolor="white"] ;
+    3 [label = " ", color="green"] ;
+
+    0 -> 1 [color="white", fontcolor="white"] ;
+    0 -> 2 [color="white", fontcolor="white", label="pUq"] ;
+    0 -> 3 [color="blue", label="q"] ;
+    0 -> 0 [color="black", label="p"] ;
+    3 -> 3 [color="blue"] ;
+}
