@@ -166,7 +166,7 @@ Avec,
  On commence par calculer la clôture de la formule :
 
 $cl(\varphi) = \{ \ap{p} \; \op{U}\; \ap{q} \; ; \op{\lnot} (\ap{p} \; \op{U}\; \ap{q}) \; ;
-                   \op{X}( \ap{p} \; \op{U}\; \ap{q}) \; ; \op{\lnot} (\op{X}( \ap{p} \; \op{U}\; \ap{q})) \; ; 
+                   \op{X}( \ap{p} \; \op{U}\; \ap{q}) \; ; \op{\lnot} (\op{X}( \ap{p} \; \op{U}\; \ap{q})) \; ;
                    \ap{p} \; ; \op{\lnot} \ap{p} \; ; \ap{q} \; ; \op{\lnot} \ap{q} \} ;$
 
 $cl(\varphi)$ est constitué de 8 formules (4 formules et leurs négations).
@@ -176,7 +176,7 @@ $cl(\varphi)$ est constitué de 8 formules (4 formules et leurs négations).
 
 <center>
 
-On calcule ainsi les états consistants suivants : 
+On calcule ainsi les états consistants suivants :
 
 ![](./img/pUqNaifWithoutEdges.jpg){height=70%}
 
@@ -186,7 +186,7 @@ On calcule ainsi les états consistants suivants :
 
 <center>
 
-On a ainsi l'automate suivant : 
+On a ainsi l'automate suivant :
 
 ![](./img/pUqNaif.jpg){height=70%}
 
@@ -200,12 +200,18 @@ A peine sale ...
 
 On commence par mettre l'état initial : c'est la formule actuelle :
 
+<!-- \begin{figure}[ht] -->
+<!--     \centering -->
+<!--     \begin{tikzpicture}[>=latex',line join=bevel,] -->
+<!--     %% -->
+<!--     \node (0) at (27.0bp,18.0bp) [draw=green,circle] {pUq}; -->
+<!--     % -->
+<!--     \end{tikzpicture} -->
+<!-- \end{figure} -->
 \begin{figure}[ht]
     \centering
-    \begin{tikzpicture}[>=latex',line join=bevel,]
-    %%
-    \node (0) at (27.0bp,18.0bp) [draw=green,circle] {pUq};
-    %
+    \begin{tikzpicture}[auto, on grid, every node]
+        \node[state, initial] (s0) at (0, 0) {$\ap{p} \; \op{U} \; \ap{q}$};
     \end{tikzpicture}
 \end{figure}
 
@@ -216,100 +222,133 @@ On construit ensuite le graphe temporaire pour l'état à considérer :
 
 \begin{figure}[ht]
     \centering
-    \begin{tikzpicture}[>=latex',line join=bevel,]
-    %%
-    \node (0) at (70.0bp,122.74bp) [draw=green,circle] {pUq};
-      \node (1) at (27.0bp,26.87bp) [draw=red,circle] {q};
-      \node (2) at (114.0bp,26.87bp) [draw=red,circle] {\begin{tabular}{c} p \\ X(pUq) \end{tabular}};
-      \draw [red,->] (0) ..controls (55.953bp,91.074bp) and (46.316bp,70.037bp)  .. (1);
-      \draw [red,->] (0) ..controls (83.239bp,93.497bp) and (90.988bp,76.964bp)  .. (2);
-      \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
-      \pgfsetstrokecolor{strokecol}
-      \draw (105.0bp,79.24bp) node {pUq};
-    %
+    \begin{tikzpicture}[auto, on grid, every node]
+      \node[state, initial] (0) at (0, 0) {$\ap{p} \; \op{U} \; \ap{q}$};
+      \node[state, draw=Red, fill=Red!10] (1) at (-1, -3) {$\ap{q}$};
+      \node[state, draw=Red, fill=Red!10] (2) at (1, -e) {$\ap{p}$, $\op{X}(\ap{p} \; \op{U} \; \ap{q})$};
+      \path[thick] (0) edge node{} (1);
+      \path[thick] (0) edge node{$\ap{p} \; \op{U} \; \ap{q}$} (2);
     \end{tikzpicture}
 \end{figure}
 
 
 ## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
 
-On ajoute ainsi les vrais états du graphe, en vert, à partir des états réduits accessibles :
+On ajoute ainsi les vrais états du graphe, en vert, à partir des états réduits
+accessibles :
+
+<!-- \begin{figure}[ht] -->
+<!--     \centering -->
+<!--     \begin{tikzpicture}[>=latex',line join=bevel,] -->
+<!--     %% -->
+<!--     \node (0) at (114.0bp,122.74bp) [draw=green,circle] {pUq}; -->
+<!--       \node (1) at (27.0bp,26.87bp) [draw=red,circle] {q}; -->
+<!--       \node (2) at (114.0bp,26.87bp) [draw=red,circle] {\begin{tabular}{c} p \\ X(pUq) \end{tabular}}; -->
+<!--       \node (3) at (201.0bp,26.87bp) [draw=green,circle,text width=0.5cm] {      }; -->
+<!--       \draw [green,->] (0) ..controls (149.51bp,131.23bp) and (159.0bp,128.65bp)  .. (159.0bp,122.74bp) .. controls (159.0bp,118.77bp) and (154.72bp,116.3bp)  .. (0); -->
+<!--       \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; -->
+<!--       \pgfsetstrokecolor{strokecol} -->
+<!--       \draw (162.5bp,122.74bp) node {p}; -->
+<!--       \draw [red,->] (0) ..controls (86.316bp,91.869bp) and (64.11bp,67.911bp)  .. (1); -->
+<!--       \draw [red,->] (0) ..controls (114.0bp,93.219bp) and (114.0bp,78.009bp)  .. (2); -->
+<!--       \draw (126.0bp,79.24bp) node {pUq}; -->
+<!--       \draw [green,->] (0) ..controls (141.68bp,91.869bp) and (163.89bp,67.911bp)  .. (3); -->
+<!--       \draw (163.5bp,79.24bp) node {q}; -->
+<!--     % -->
+<!--     \end{tikzpicture} -->
+<!-- \end{figure} -->
 
 \begin{figure}[ht]
     \centering
-    \begin{tikzpicture}[>=latex',line join=bevel,]
-    %%
-    \node (0) at (114.0bp,122.74bp) [draw=green,circle] {pUq};
-      \node (1) at (27.0bp,26.87bp) [draw=red,circle] {q};
-      \node (2) at (114.0bp,26.87bp) [draw=red,circle] {\begin{tabular}{c} p \\ X(pUq) \end{tabular}};
-      \node (3) at (201.0bp,26.87bp) [draw=green,circle,text width=0.5cm] {      };
-      \draw [green,->] (0) ..controls (149.51bp,131.23bp) and (159.0bp,128.65bp)  .. (159.0bp,122.74bp) .. controls (159.0bp,118.77bp) and (154.72bp,116.3bp)  .. (0);
-      \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
-      \pgfsetstrokecolor{strokecol}
-      \draw (162.5bp,122.74bp) node {p};
-      \draw [red,->] (0) ..controls (86.316bp,91.869bp) and (64.11bp,67.911bp)  .. (1);
-      \draw [red,->] (0) ..controls (114.0bp,93.219bp) and (114.0bp,78.009bp)  .. (2);
-      \draw (126.0bp,79.24bp) node {pUq};
-      \draw [green,->] (0) ..controls (141.68bp,91.869bp) and (163.89bp,67.911bp)  .. (3);
-      \draw (163.5bp,79.24bp) node {q};
-    %
+    \begin{tikzpicture}[auto, on grid, every node]
+      \node[state, initial] (0) at (0, 0) {$\ap{p} \; \op{U} \; \ap{q}$};
+      \node[state, draw=Red!20, fill=Red!10] (1) at (0, -3) {$\ap{q}$};
+      \node[state, draw=Red!20, fill=Red!10] (2) at (2, -3) {$\ap{p}$, $\op{X}(\ap{p} \; \op{U} \; \ap{q})$};
+      \node[state, draw=Green, fill=Green!10] (3) at (-2, -3) {$\emptyset$};
+      \path[] (0) edge node{} (1);
+      \path[] (0) edge node{$\ap{p} \; \op{U} \; \ap{q}$} (2);
+      \path[thick] (0) edge[loop right] node{$\ap{p}$} (0);
+      \path[thick] (0) edge node{$\ap{q}$} (3);
     \end{tikzpicture}
 \end{figure}
 
 ## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
 
-On a un autre état à considérer, l'état vide. Comme il est réduit et qu'il ne contient pas d'état, il boucle sur lui même : 
+On a un autre état à considérer, l'état vide. Comme il est réduit et qu'il ne contient pas d'état, il boucle sur lui même :
+
+<!-- \begin{figure}[ht] -->
+<!--     \centering -->
+<!--     \begin{tikzpicture}[>=latex',line join=bevel,] -->
+<!--     %% -->
+<!--     \node (0) at (114.0bp,122.74bp) [draw=green,circle] {pUq}; -->
+<!--       \node (1) at (27.0bp,26.87bp) [draw=red,circle] {q}; -->
+<!--       \node (2) at (114.0bp,26.87bp) [draw=red,circle] {\begin{tabular}{c} p \\ X(pUq) \end{tabular}}; -->
+<!--       \node (3) at (201.0bp,26.87bp) [draw=green,circle,text width=0.5cm] {      }; -->
+<!--       \draw [green,->] (0) ..controls (149.51bp,131.23bp) and (159.0bp,128.65bp)  .. (159.0bp,122.74bp) .. controls (159.0bp,118.77bp) and (154.72bp,116.3bp)  .. (0); -->
+<!--       \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; -->
+<!--       \pgfsetstrokecolor{strokecol} -->
+<!--       \draw (162.5bp,122.74bp) node {p}; -->
+<!--       \draw [red,->] (0) ..controls (86.316bp,91.869bp) and (64.11bp,67.911bp)  .. (1); -->
+<!--       \draw [red,->] (0) ..controls (114.0bp,93.219bp) and (114.0bp,78.009bp)  .. (2); -->
+<!--       \draw (126.0bp,79.24bp) node {pUq}; -->
+<!--       \draw [green,->] (0) ..controls (141.68bp,91.869bp) and (163.89bp,67.911bp)  .. (3); -->
+<!--       \draw (163.5bp,79.24bp) node {q}; -->
+<!--       \draw [green,->] (3) ..controls (235.7bp,37.641bp) and (246.0bp,34.487bp)  .. (246.0bp,26.87bp) .. controls (246.0bp,21.633bp) and (241.13bp,18.506bp)  .. (3); -->
+<!--     % -->
+<!--     \end{tikzpicture} -->
+<!-- \end{figure} -->
 
 \begin{figure}[ht]
     \centering
-    \begin{tikzpicture}[>=latex',line join=bevel,]
-    %%
-    \node (0) at (114.0bp,122.74bp) [draw=green,circle] {pUq};
-      \node (1) at (27.0bp,26.87bp) [draw=red,circle] {q};
-      \node (2) at (114.0bp,26.87bp) [draw=red,circle] {\begin{tabular}{c} p \\ X(pUq) \end{tabular}};
-      \node (3) at (201.0bp,26.87bp) [draw=green,circle,text width=0.5cm] {      };
-      \draw [green,->] (0) ..controls (149.51bp,131.23bp) and (159.0bp,128.65bp)  .. (159.0bp,122.74bp) .. controls (159.0bp,118.77bp) and (154.72bp,116.3bp)  .. (0);
-      \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
-      \pgfsetstrokecolor{strokecol}
-      \draw (162.5bp,122.74bp) node {p};
-      \draw [red,->] (0) ..controls (86.316bp,91.869bp) and (64.11bp,67.911bp)  .. (1);
-      \draw [red,->] (0) ..controls (114.0bp,93.219bp) and (114.0bp,78.009bp)  .. (2);
-      \draw (126.0bp,79.24bp) node {pUq};
-      \draw [green,->] (0) ..controls (141.68bp,91.869bp) and (163.89bp,67.911bp)  .. (3);
-      \draw (163.5bp,79.24bp) node {q};
-      \draw [green,->] (3) ..controls (235.7bp,37.641bp) and (246.0bp,34.487bp)  .. (246.0bp,26.87bp) .. controls (246.0bp,21.633bp) and (241.13bp,18.506bp)  .. (3);
-    %
+    \begin{tikzpicture}[auto, on grid, every node]
+      \node[state, initial] (0) at (0, 0) {$\ap{p} \; \op{U} \; \ap{q}$};
+      \node[state, draw=Green, fill=Green!10] (3) at (0, -2) {$\emptyset$};
+      \path[thick] (0) edge[loop right] node{$\ap{p}$} (0);
+      \path[thick] (0) edge node{$\ap{q}$} (3);
+      \path[thick] (3) edge[loop right] node{$\Sigma$} (3);
     \end{tikzpicture}
 \end{figure}
 
 ## Un exemple _comparé_ pour $\varphi = \ap{p} \; \op{U}\; \ap{q}$
 
-On retire les états temporaires. Comme il y a un Until, il faut ajouter un ensemble de transitions d'acceptations, en bleu :
+On retire les états temporaires. Comme il y a un Until, il faut ajouter un
+ensemble de transitions d'acceptations, en bleu et pointillé :
 
 \begin{figure}[ht]
     \centering
-    \begin{tikzpicture}[>=latex',line join=bevel,]
-    %%
-    \node (0) at (114.0bp,122.74bp) [draw=green,circle] {pUq};
-      \node (1) at (27.0bp,26.87bp) [draw=white,circle] {};
-      \node (2) at (114.0bp,26.87bp) [draw=white,circle] {};
-      \node (3) at (201.0bp,26.87bp) [draw=green,circle,text width=0.5cm] { };
-      \draw [black,->] (0) ..controls (149.51bp,131.23bp) and (159.0bp,128.65bp)  .. (159.0bp,122.74bp) .. controls (159.0bp,118.77bp) and (154.72bp,116.3bp)  .. (0);
-      \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
-      \pgfsetstrokecolor{strokecol}
-      \draw (162.5bp,122.74bp) node {p};
-      \draw [white,->] (0) ..controls (86.316bp,91.869bp) and (64.11bp,67.911bp)  .. (1);
-      \draw [white,->] (0) ..controls (114.0bp,93.219bp) and (114.0bp,78.009bp)  .. (2);
-      \definecolor{strokecol}{rgb}{1.0,1.0,1.0};
-      \pgfsetstrokecolor{strokecol}
-      \draw [blue,->] (0) ..controls (141.68bp,91.869bp) and (163.89bp,67.911bp)  .. (3);
-      \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
-      \pgfsetstrokecolor{strokecol}
-      \draw (163.5bp,79.24bp) node {q};
-      \draw [blue,->] (3) ..controls (235.7bp,37.641bp) and (246.0bp,34.487bp)  .. (246.0bp,26.87bp) .. controls (246.0bp,21.633bp) and (241.13bp,18.506bp)  .. (3);
-    %
+    \begin{tikzpicture}[auto, on grid, every node]
+      \node[state, initial] (0) at (0, 0) {$\ap{p} \; \op{U} \; \ap{q}$};
+      \node[state, draw=Green, fill=Green!10] (3) at (0, -2) {$\emptyset$};
+      \path[thick] (0) edge[loop right] node{$\ap{p}$} (0);
+      \path[thick, dashed, draw=Blue] (0) edge node{$\ap{q}$} (3);
+      \path[thick, dashed, draw=Blue] (3) edge[loop right] node{$\Sigma$} (3);
     \end{tikzpicture}
 \end{figure}
+
+<!-- \begin{figure}[ht] -->
+<!--     \centering -->
+<!--     \begin{tikzpicture}[>=latex',line join=bevel,] -->
+<!--     %% -->
+<!--     \node (0) at (114.0bp,122.74bp) [draw=green,circle] {pUq}; -->
+<!--       \node (1) at (27.0bp,26.87bp) [draw=white,circle] {}; -->
+<!--       \node (2) at (114.0bp,26.87bp) [draw=white,circle] {}; -->
+<!--       \node (3) at (201.0bp,26.87bp) [draw=green,circle,text width=0.5cm] { }; -->
+<!--       \draw [black,->] (0) ..controls (149.51bp,131.23bp) and (159.0bp,128.65bp)  .. (159.0bp,122.74bp) .. controls (159.0bp,118.77bp) and (154.72bp,116.3bp)  .. (0); -->
+<!--       \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; -->
+<!--       \pgfsetstrokecolor{strokecol} -->
+<!--       \draw (162.5bp,122.74bp) node {p}; -->
+<!--       \draw [white,->] (0) ..controls (86.316bp,91.869bp) and (64.11bp,67.911bp)  .. (1); -->
+<!--       \draw [white,->] (0) ..controls (114.0bp,93.219bp) and (114.0bp,78.009bp)  .. (2); -->
+<!--       \definecolor{strokecol}{rgb}{1.0,1.0,1.0}; -->
+<!--       \pgfsetstrokecolor{strokecol} -->
+<!--       \draw [blue,->] (0) ..controls (141.68bp,91.869bp) and (163.89bp,67.911bp)  .. (3); -->
+<!--       \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; -->
+<!--       \pgfsetstrokecolor{strokecol} -->
+<!--       \draw (163.5bp,79.24bp) node {q}; -->
+<!--       \draw [blue,->] (3) ..controls (235.7bp,37.641bp) and (246.0bp,34.487bp)  .. (246.0bp,26.87bp) .. controls (246.0bp,21.633bp) and (241.13bp,18.506bp)  .. (3); -->
+<!--     % -->
+<!--     \end{tikzpicture} -->
+<!-- \end{figure} -->
 
 ## (Un autre exemple pour $\varphi = \ap{p} \; \op{U}\; \op{FX}\ap{q}$)
 
