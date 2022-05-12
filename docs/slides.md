@@ -650,4 +650,71 @@ On a deux formules Until. On ajoute donc deux ensembles d'états acceptants :
 
 ## L'implémentation d'Emile
 
+![Exemple d'exécution pour la formule $\varphi = \ap{p} \; \op{U}\; \op{FX}\ap{q}$](./img/demo-emile.png){width=\textwidth}
+
+## L'implémentation d'Emile
+
+Principales caractéristiques :
+
+- Est implémenté en OCaml.
+- Le parseur utilise `ocamllex` et `menhir`.
+- Une soixantaine de test unitaires sont effectués avec `alcotest` et exécutés
+  en intégration continue avec `GitHub`.
+- Ne calcule pas le graphe intermédiaire mais directement l'ensemble des feuilles réduites.
+
+## L'implémentation d'Emile
+
+En particulier, la fonction `val red : state -> red_states` retourne un record de type :
+
+```ocaml
+type red_states =
+  { all : StateSet.t
+  ; marked_by : StateSet.t FormulaMap.t
+  }
+```
+
+Où `all` représente l'ensemble des états réduits accessible en utilisant
+**aucune** arête marquée et `marked_by` est une map avec comme clé les formules
+de la forme $\alpha = \alpha_1 \; \op{U} \; \alpha_2$ et en valeur l'ensemble
+des états réduits accessible en utilisant **uniquement** des arêtes marquées
+par $\alpha$.
+
+. . .
+
+Donc finalement :
+\begin{align*}
+\text{Red}(Y)         &= \texttt{all} \cup \bigcup_{\alpha \in \texttt{marked\_by.keys}} \texttt{marked\_by}[\alpha]\\
+\text{Red}_\alpha(Y)  &= \text{Red}(Y) \setminus \texttt{marked\_by}[\alpha]
+\end{align*}
+
+## L'implémentation d'Emile
+
+Principales caractéristiques :
+
+- Est implémenté en OCaml.
+- Le parseur utilise `ocamllex` et `menhir`.
+- Une soixantaine de test unitaires sont effectués avec `alcotest` et exécutés
+  en intégration continue avec `GitHub`.
+- Ne calcule pas le graphe intermédiaire mais directement l'ensemble des
+  feuilles réduites.
+- L'automate est défini comme un graphe orienté et utilise `ocamlgraph` pour
+  l'implémentation.
+
+## L'implémentation d'Emile
+
+```ocaml
+module TransBuchi : sig
+  include
+    Graph.Sig.I
+      with type V.t =
+        [ `Init of state
+        | `Normal of state
+        ]
+       and type E.label =
+        [ `Normal of FormulaSet.t
+        | `Acceptant of Ltl.formula list * FormulaSet.t
+        ]
+end
+```
+
 ## L'implémentation de Thomas
